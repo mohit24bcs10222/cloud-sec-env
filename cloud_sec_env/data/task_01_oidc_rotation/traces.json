@@ -1,0 +1,188 @@
+{
+  "a1b2c3": {
+    "trace_id": "a1b2c3",
+    "total_duration_ms": 214,
+    "status": "ERROR",
+    "start_time": "2026-04-22T00:17:22.280Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T00:17:22.280Z", "duration_ms": 214, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T00:17:22.285Z", "duration_ms": 206, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T00:17:22.340Z", "duration_ms": 3, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T00:17:22.340Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T00:17:22.341Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b2c4": {
+    "trace_id": "a1b2c4",
+    "total_duration_ms": 198,
+    "status": "ERROR",
+    "start_time": "2026-04-22T00:22:41.580Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "partial": true,
+    "partial_note": "3 of 5 expected spans present -- 2 missing (crypto.verify + cache.lookup sub-spans not sampled)",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T00:22:41.580Z", "duration_ms": 198, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T00:22:41.585Z", "duration_ms": 190, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T00:22:41.660Z", "duration_ms": 5, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}}
+    ]
+  },
+
+  "a1b2d1": {
+    "trace_id": "a1b2d1",
+    "total_duration_ms": 220,
+    "status": "ERROR",
+    "start_time": "2026-04-22T03:12:54.900Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T03:12:54.900Z", "duration_ms": 220, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T03:12:54.904Z", "duration_ms": 210, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T03:12:55.000Z", "duration_ms": 3, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T03:12:55.000Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T03:12:55.001Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b2d3": {
+    "trace_id": "a1b2d3",
+    "total_duration_ms": 201,
+    "status": "ERROR",
+    "start_time": "2026-04-22T07:15:21.910Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T07:15:21.910Z", "duration_ms": 201, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T07:15:21.915Z", "duration_ms": 195, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T07:15:22.090Z", "duration_ms": 2, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T07:15:22.091Z", "duration_ms": 1, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b2e4": {
+    "trace_id": "a1b2e4",
+    "total_duration_ms": 240,
+    "status": "ERROR",
+    "start_time": "2026-04-22T11:22:07.900Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T11:22:07.900Z", "duration_ms": 240, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T11:22:07.905Z", "duration_ms": 232, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T11:22:08.060Z", "duration_ms": 4, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T11:22:08.060Z", "duration_ms": 2, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T11:22:08.062Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b2f4": {
+    "trace_id": "a1b2f4",
+    "total_duration_ms": 212,
+    "status": "ERROR",
+    "start_time": "2026-04-22T13:22:04.990Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T13:22:04.990Z", "duration_ms": 212, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T13:22:04.996Z", "duration_ms": 205, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T13:22:05.190Z", "duration_ms": 3, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T13:22:05.190Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T13:22:05.191Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b30b": {
+    "trace_id": "a1b30b",
+    "total_duration_ms": 215,
+    "status": "ERROR",
+    "start_time": "2026-04-22T14:02:17.280Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T14:02:17.280Z", "duration_ms": 215, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T14:02:17.285Z", "duration_ms": 206, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T14:02:17.340Z", "duration_ms": 3, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T14:02:17.340Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T14:02:17.341Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "a1b30c": {
+    "trace_id": "a1b30c",
+    "total_duration_ms": 209,
+    "status": "ERROR",
+    "start_time": "2026-04-22T14:03:11.820Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T14:03:11.820Z", "duration_ms": 209, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T14:03:11.825Z", "duration_ms": 202, "status": "ERROR", "attributes": {"http.status_code": 401, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T14:03:11.880Z", "duration_ms": 3, "status": "ERROR", "attributes": {"kid": "rsa-2026-q2", "tenant": "acme", "error": "signature_failed"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T14:03:11.880Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": false, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T14:03:11.881Z", "duration_ms": 2, "status": "ERROR", "attributes": {"error": "kid_mismatch", "kid_expected": "rsa-2026-q2", "kid_known": ["rsa-2025-q4"]}}
+    ]
+  },
+
+  "b1c2d3": {
+    "trace_id": "b1c2d3",
+    "total_duration_ms": 189,
+    "status": "OK",
+    "start_time": "2026-04-22T00:34:11.100Z",
+    "root_service": "api-gateway",
+    "tenant": "bolt",
+    "cloud": "cloud-1",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T00:34:11.100Z", "duration_ms": 189, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "bolt"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T00:34:11.105Z", "duration_ms": 180, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "bolt"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T00:34:11.190Z", "duration_ms": 4, "status": "OK", "attributes": {"kid": "rsa-2026-q2", "tenant": "bolt"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T00:34:11.190Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": true, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T00:34:11.191Z", "duration_ms": 3, "status": "OK", "attributes": {}}
+    ]
+  },
+
+  "c3d4e5": {
+    "trace_id": "c3d4e5",
+    "total_duration_ms": 176,
+    "status": "OK",
+    "start_time": "2026-04-22T00:52:03.340Z",
+    "root_service": "api-gateway",
+    "tenant": "vertex",
+    "cloud": "cloud-3",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-22T00:52:03.340Z", "duration_ms": 176, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "vertex"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-22T00:52:03.345Z", "duration_ms": 168, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "vertex"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-22T00:52:03.430Z", "duration_ms": 3, "status": "OK", "attributes": {"kid": "rsa-2026-q2", "tenant": "vertex"}},
+      {"span_id": "s4", "parent_id": "s3", "service": "sts-broker", "operation": "cache.lookup", "start": "2026-04-22T00:52:03.430Z", "duration_ms": 1, "status": "OK", "attributes": {"cache": "jwks", "hit": true, "kid": "rsa-2026-q2"}},
+      {"span_id": "s5", "parent_id": "s3", "service": "sts-broker", "operation": "crypto.verify", "start": "2026-04-22T00:52:03.431Z", "duration_ms": 2, "status": "OK", "attributes": {}}
+    ]
+  },
+
+  "e22b1a": {
+    "trace_id": "e22b1a",
+    "total_duration_ms": 612,
+    "status": "OK",
+    "start_time": "2026-04-21T15:12:41.770Z",
+    "root_service": "api-gateway",
+    "tenant": "acme",
+    "cloud": "cloud-2",
+    "note": "Historical successful trace from pre-rotation (2025-q4 kid still valid). Demonstrates normal flow, also shows a policy-svc retry.",
+    "spans": [
+      {"span_id": "s1", "parent_id": null, "service": "api-gateway", "operation": "/v1/login", "start": "2026-04-21T15:12:41.770Z", "duration_ms": 612, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "acme"}},
+      {"span_id": "s2", "parent_id": "s1", "service": "auth-svc", "operation": "/sts/validate", "start": "2026-04-21T15:12:41.775Z", "duration_ms": 200, "status": "OK", "attributes": {"http.status_code": 200, "tenant": "acme"}},
+      {"span_id": "s3", "parent_id": "s2", "service": "sts-broker", "operation": "jwt.verify", "start": "2026-04-21T15:12:41.860Z", "duration_ms": 4, "status": "OK", "attributes": {"kid": "rsa-2025-q4", "tenant": "acme"}},
+      {"span_id": "s4", "parent_id": "s1", "service": "auth-svc", "operation": "/policy/check", "start": "2026-04-21T15:12:41.980Z", "duration_ms": 455, "status": "OK", "attributes": {"retries": 1}},
+      {"span_id": "s5", "parent_id": "s4", "service": "policy-svc", "operation": "evaluate", "start": "2026-04-21T15:12:42.330Z", "duration_ms": 100, "status": "OK", "attributes": {}}
+    ]
+  }
+}

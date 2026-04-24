@@ -1,0 +1,164 @@
+# Slack message fixture -- 5 channels, ~22 messages.
+#
+# Story-critical messages:
+#   - Patel's overconfident "looks clean" post in #sre-oncall
+#   - Chen's state-lock-contention thread in #infra-terraform   <-- the key signal
+#   - oncall-bot PagerDuty alert at T+0
+#   - Acme CSM escalation mention
+#
+# Noise & red herring padding: deploy chatter, unrelated acme pricing thread,
+# general chatter, an ML team thread about cloud-3 CPU.
+
+# ============================================================
+# #sre-oncall -- the main on-call channel
+# ============================================================
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T00:08:00Z"
+  author: j.patel
+  text: "kicking off CHG-1891 OIDC key rotation now across all 3 clouds. ping me if anything looks weird."
+  thread_ts: null
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T00:25:00Z"
+  author: j.patel
+  text: "rotated OIDC signing key, terraform applied to all regions, looks clean. closing CHG-1891."
+  thread_ts: null
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T00:52:00Z"
+  author: k.davis
+  text: "nice. auth latency looks normal. thanks."
+  thread_ts: "2026-04-22T00:25:00Z"
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T13:20:00Z"
+  author: oncall-bot
+  text: "PagerDuty: cloud-3 ml-scorer CPU throttling SEV-3 fired. INC-4470. low priority, handing to ML infra."
+  thread_ts: null
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T13:45:00Z"
+  author: oncall-bot
+  text: "PagerDuty: auth_svc_5xx_rate_cloud2 SEV-2 fired. 5min burn rate 8.7%. INC-4472."
+  thread_ts: null
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T13:48:00Z"
+  author: s.okonkwo
+  text: "Acme is pinging us -- their users can't SSO. escalating from support queue."
+  thread_ts: "2026-04-22T13:45:00Z"
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-22T13:52:00Z"
+  author: k.davis
+  text: "on it. looking at the alert now."
+  thread_ts: "2026-04-22T13:45:00Z"
+
+# ============================================================
+# #infra-terraform -- platform engineering channel
+# ============================================================
+
+- channel: "#infra-terraform"
+  timestamp: "2026-04-22T00:11:00Z"
+  author: m.chen
+  text: "quick heads up: running a terraform plan against cloud-2 infra rn to check the audit-logger retention delta. will be ~10min."
+  thread_ts: null
+
+- channel: "#infra-terraform"
+  timestamp: "2026-04-22T00:14:00Z"
+  author: m.chen
+  text: "hmm, getting a state-lock conflict on cloud-2. anyone else running against that state?"
+  thread_ts: null
+
+- channel: "#infra-terraform"
+  timestamp: "2026-04-22T00:15:00Z"
+  author: m.chen
+  text: "oh nvm, i see patel is doing a rotation. i'll back off until he's done."
+  thread_ts: "2026-04-22T00:14:00Z"
+
+- channel: "#infra-terraform"
+  timestamp: "2026-04-22T00:21:00Z"
+  author: m.chen
+  text: "@j.patel FYI i had a stale lock when you were running -- hope my plan didn't mess you up. should be clean on my end now."
+  thread_ts: "2026-04-22T00:14:00Z"
+
+# Patel never replies to the thread. This is the buried clue.
+
+- channel: "#infra-terraform"
+  timestamp: "2026-04-21T16:02:00Z"
+  author: a.rodriguez
+  text: "pre-registering: rolling policy-svc v2.14.3 to cloud-1 tomorrow ~10:00 UTC (CHG-1895). canary for 30min then full."
+  thread_ts: null
+
+# ============================================================
+# #deploys -- deploy chatter
+# ============================================================
+
+- channel: "#deploys"
+  timestamp: "2026-04-22T10:00:00Z"
+  author: a.rodriguez
+  text: "CHG-1895 cloud-1 policy-svc v2.14.3 applied. canary 5% -> 30min observation."
+  thread_ts: null
+
+- channel: "#deploys"
+  timestamp: "2026-04-22T10:32:00Z"
+  author: a.rodriguez
+  text: "CHG-1895 full rollout complete. metrics clean."
+  thread_ts: null
+
+- channel: "#deploys"
+  timestamp: "2026-04-22T08:15:00Z"
+  author: a.rodriguez
+  text: "CHG-1898 audit-logger cloud-3 retention bumped 30->60d. no user impact."
+  thread_ts: null
+
+# ============================================================
+# #acme-support -- customer-specific Slack channel
+# ============================================================
+
+- channel: "#acme-support"
+  timestamp: "2026-04-20T09:15:00Z"
+  author: s.okonkwo
+  text: "heads up team: Acme's Q3 pricing doc is being finalized this week. holding billing questions til friday."
+  thread_ts: null
+
+- channel: "#acme-support"
+  timestamp: "2026-04-20T09:18:00Z"
+  author: k.davis
+  text: "noted, thanks @s.okonkwo"
+  thread_ts: "2026-04-20T09:15:00Z"
+
+- channel: "#acme-support"
+  timestamp: "2026-04-22T13:46:00Z"
+  author: s.okonkwo
+  text: "Acme SSO is down for their eng org. 50+ users paged. escalating to #sre-oncall."
+  thread_ts: null
+
+- channel: "#acme-support"
+  timestamp: "2026-04-22T13:50:00Z"
+  author: s.okonkwo
+  text: "acme CSM is on a call with us, they need an ETA. anything to share?"
+  thread_ts: "2026-04-22T13:46:00Z"
+
+# ============================================================
+# #general -- ambient noise
+# ============================================================
+
+- channel: "#general"
+  timestamp: "2026-04-22T11:00:00Z"
+  author: k.davis
+  text: "reminder: security training due friday. I'm 80% done, not bad."
+  thread_ts: null
+
+- channel: "#general"
+  timestamp: "2026-04-22T12:15:00Z"
+  author: a.rodriguez
+  text: "who took the last coffee? @ everyone"
+  thread_ts: null
+
+- channel: "#general"
+  timestamp: "2026-04-22T12:18:00Z"
+  author: m.chen
+  text: "not me, i'm on tea this week 🍵"
+  thread_ts: "2026-04-22T12:15:00Z"

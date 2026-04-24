@@ -1,0 +1,178 @@
+# Ground truth for Task #1 -- OIDC signing-key rotation incident.
+#
+# The reward scorer reads this. The agent NEVER sees it. Every other data
+# file in this folder must be consistent with what's here.
+
+task_id: task_01_oidc_rotation
+scenario_name: "OIDC signing-key rotation: silent failure on cloud-2"
+
+# --- Timeline ---
+# All times UTC. "T" = alert trigger time.
+timeline:
+  alert_time:            "2026-04-22T14:02:00Z"   # T+0
+  rotation_started:      "2026-04-22T00:10:00Z"   # T-13h52m (when Terraform apply started)
+  rotation_completed:    "2026-04-22T00:22:00Z"   # T-13h40m (when Patel declared victory)
+  first_failure:         "2026-04-22T00:17:00Z"   # T-13h45m (first Acme user hit cloud-2 post-rotation)
+  error_rate_climbed:    "2026-04-22T13:00:00Z"   # T-1h02m (business hours in cloud-2's region)
+
+# --- Actors ---
+people:
+  - username: j.patel
+    role: SRE
+    involvement: "Primary author of CHG-1891. Ran the Terraform apply. Didn't catch the cloud-2 silent failure."
+  - username: k.davis
+    role: SRE
+    involvement: "Acknowledged Patel's rotation Slack post. Not at fault."
+  - username: m.chen
+    role: Platform engineer
+    involvement: "Was running a concurrent Terraform plan against cloud-2 infra at the same time -- held the state lock."
+  - username: s.okonkwo
+    role: Customer Success Manager (Acme)
+    involvement: "Posted unrelated pricing thread 2 days prior. Pure noise."
+
+customers:
+  - tenant: acme
+    tier: enterprise
+    idp: okta
+    primary_cloud: cloud-2    # geographic routing lands them here
+    affected: true
+
+  - tenant: bolt
+    tier: enterprise
+    primary_cloud: cloud-1
+    affected: false           # routes to cloud-1, healthy
+
+  - tenant: vertex
+    tier: growth
+    primary_cloud: cloud-3
+    affected: false           # routes to cloud-3, healthy
+
+# --- Root cause facts ---
+root_cause:
+  originating_change: CHG-1891
+  change_author: j.patel
+  change_applied_at: "2026-04-22T00:10:00Z"
+  change_description: "Rotate OIDC signing key; roll new key into sts-broker across all clouds."
+
+  failure_mode: "Terraform apply silently failed on cloud-2 due to state-lock contention with m.chen's concurrent plan. New public key did not load into cloud-2 sts-broker."
+  failure_signature: "Terraform output showed a warning, not an error; Patel missed it."
+
+  symptom: "cloud-2 sts-broker validates Acme JWTs against the old public key. Okta now signs with the new private key. All Acme tokens rejected with 'signature verification failed: kid=rsa-2025-q4 unknown'."
+
+  affected_scope:
+    clouds: [cloud-2]
+    services: [sts-broker, auth-svc]
+    tenants: [acme]
+
+# --- Correct fix ---
+fix:
+  action: "Re-apply the Terraform module targeting cloud-2 only, to push the new public key into sts-broker."
+  commands_rough: "terraform apply -target=module.cloud_2.sts_broker_keys"
+  must_not_do:
+    - "Do NOT roll back the rotation globally -- cloud-1 and cloud-3 are healthy with the new key and rolling back would break them."
+    - "Do NOT restart sts-broker on cloud-2 -- it won't fix the config, only masks with transient recovery."
+
+# --- Red herrings (must NOT be blamed) ---
+red_herrings:
+  - id: cpu_throttle_cloud3
+    description: "cloud-3 ml-scorer CPU throttling alert fires 40min before ours. Unrelated workload issue."
+    distractor_evidence:
+      - "Separate SEV-3 alert ticket (INC-4470) exists"
+      - "Shows up in ticket_search for 'alert'"
+
+  - id: policy_svc_deploy_cloud1
+    description: "cloud-1 policy-svc v2.14.3 deploy at T-4h. Routine deploy, no impact."
+    distractor_evidence:
+      - "Shows up as deploy event in ticket_search"
+      - "Recent timing looks suspicious if not scoped"
+
+  - id: stale_kb_doc
+    description: "2024 auth-outage retro doc (kb-09) describes obsolete log patterns from old JWT library."
+    distractor_evidence:
+      - "Matches 'auth' keyword searches"
+      - "Dated 2024-06-03 -- agent must notice staleness"
+
+  - id: acme_pricing_slack
+    description: "Pricing thread 2 days prior in #acme-support by s.okonkwo. Not incident-related."
+    distractor_evidence:
+      - "Mentions 'acme' and could match slack searches"
+
+  - id: baseline_5xx_flaky
+    description: "Baseline ~0.8% 5xx rate from a flaky downstream dependency (unrelated to OIDC). Agent should recognise it as baseline noise, not a second incident."
+    distractor_evidence:
+      - "5xx metric is never zero"
+
+  - id: patel_confident_slack
+    description: "Patel's 'looks clean' Slack message -- overconfident human summary."
+    distractor_evidence:
+      - "Agent must cross-check with metrics/logs, not trust the confident human"
+
+# --- Reward scoring rubric ---
+# Terminal reward computed from submit_answer. Max = 1.0. Step-level rewards accumulate separately.
+reward_rubric:
+  root_cause_components:
+    identify_chg_1891:
+      weight: 0.25
+      hits_when: "'CHG-1891' appears in submitted root_cause"
+    identify_cloud2_scope:
+      weight: 0.15
+      hits_when: "'cloud-2' appears in submitted root_cause"
+    identify_state_lock_mechanism:
+      weight: 0.20
+      hits_when: "submitted root_cause mentions 'state lock' OR 'silent failure' OR 'concurrent' (any one)"
+    identify_stale_key_symptom:
+      weight: 0.15
+      hits_when: "submitted root_cause mentions 'old/stale public key' OR 'signature verification' OR 'kid'"
+
+  fix_components:
+    proposes_targeted_reapply:
+      weight: 0.15
+      hits_when: "submitted fix mentions 're-apply' OR 'reapply' OR 'apply' AND mentions 'cloud-2'"
+    avoids_global_rollback:
+      weight: 0.10
+      hits_when: "submitted fix does NOT advocate rolling back the rotation globally"
+
+  # Total = 1.00
+
+# --- Step-level reward hooks (used by reward scorer on every tool call) ---
+step_rewards:
+  correct_first_tool:
+    weight: 0.10
+    hits_when: "first tool called is logs_search OR trace_search with cloud=cloud-2"
+    rationale: "Good scoping: first move should target the alerting cloud."
+
+  finds_signature_error_log:
+    weight: 0.10
+    hits_when: "any logs_search call returns rows containing 'signature verification' or 'kid_mismatch'"
+
+  pivots_to_trace:
+    weight: 0.05
+    hits_when: "trace_get called with a trace_id that appeared in an earlier logs_search result"
+    rationale: "Classic log -> trace pivot."
+
+  finds_chg_1891_ticket:
+    weight: 0.10
+    hits_when: "ticket_search returns CHG-1891 in its results"
+
+  reads_state_lock_slack:
+    weight: 0.10
+    hits_when: "slack_search returns the #infra-terraform state-lock thread"
+
+  finds_correct_runbook:
+    weight: 0.10
+    hits_when: "kb_search returns kb-42 (OIDC rotation runbook)"
+
+  penalty_no_scoping:
+    weight: -0.05
+    hits_when: "logs_search called without cloud AND without service filter"
+    rationale: "Unfocused queries waste the step budget."
+
+  penalty_cloud3_fixation:
+    weight: -0.10
+    hits_when: "3+ tool calls scoped to cloud-3 without returning to cloud-2"
+    rationale: "Agent fell for the ml-scorer red herring."
+
+# --- Meta ---
+max_steps: 30
+ideal_trajectory_length: 6-9
+expected_difficulty: "Opus Pass@1 ~40%, Qwen2.5 baseline Pass@1 ~0-5%."
