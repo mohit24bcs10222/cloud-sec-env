@@ -1,0 +1,77 @@
+[
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_042150_r1.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T22:51:50.918748+00:00",
+      "duration_s": 31.38,
+      "stop_reason": "adapter_returned_none",
+      "terminated_cleanly": false,
+      "num_steps": 19,
+      "total_reward": 0.2,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_042150_r2.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T22:52:22.310886+00:00",
+      "duration_s": 8.65,
+      "stop_reason": "adapter_error: HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-69ebf42f-66809dd8758880f8681b8186;9338db93-2b40-44e0-9003-f8277199fa95)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have depleted your monthly included credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get 20x more included usage.",
+      "terminated_cleanly": false,
+      "num_steps": 6,
+      "total_reward": 0.2,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_042150_r3.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T22:52:30.970834+00:00",
+      "duration_s": 0.28,
+      "stop_reason": "adapter_error: HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-69ebf42f-54093d6355a420ec1c7f98e3;8c56a17c-2d7b-4c13-ac58-7245e102b255)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have depleted your monthly included credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get 20x more included usage.",
+      "terminated_cleanly": false,
+      "num_steps": 0,
+      "total_reward": 0.0,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_042150_r4.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T22:52:31.257232+00:00",
+      "duration_s": 0.28,
+      "stop_reason": "adapter_error: HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-69ebf42f-4ea21bb67717150c7fefe7f0;402854da-a4f5-4430-b181-1bb0e79abcbe)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have depleted your monthly included credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get 20x more included usage.",
+      "terminated_cleanly": false,
+      "num_steps": 0,
+      "total_reward": 0.0,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_042150_r5.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T22:52:31.551758+00:00",
+      "duration_s": 0.27,
+      "stop_reason": "adapter_error: HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-69ebf42f-313f377a6a1ac5837d9c82ff;0489ae1d-12a8-449c-b3de-b4c51f3b724e)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have depleted your monthly included credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get 20x more included usage.",
+      "terminated_cleanly": false,
+      "num_steps": 0,
+      "total_reward": 0.0,
+      "terminal_reward": null
+    }
+  }
+]

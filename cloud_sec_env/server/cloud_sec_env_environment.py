@@ -14,6 +14,7 @@ the final submit_answer against ground_truth.yaml.
 
 from __future__ import annotations
 
+import os
 from uuid import uuid4
 
 from openenv.core.env_server.interfaces import Environment
@@ -22,16 +23,36 @@ from openenv.core.env_server.types import State
 try:
     from ..models import CloudSecAction, CloudSecObservation
     from .data_loader import DataStore
+    from .llm_judge import LLMJudge
     from .reward import RewardScorer
     from .tools import TOOL_REGISTRY, ToolError, call_tool
 except ImportError:
     from models import CloudSecAction, CloudSecObservation
     from server.data_loader import DataStore
+    from server.llm_judge import LLMJudge
     from server.reward import RewardScorer
     from server.tools import TOOL_REGISTRY, ToolError, call_tool
 
 
 MAX_STEPS = 30
+
+
+def _build_judge() -> "LLMJudge | None":
+    """Construct an LLM judge if ANTHROPIC_API_KEY is set AND judge isn't disabled.
+
+    Env vars:
+      - ANTHROPIC_API_KEY: required for judge.
+      - CLOUD_SEC_DISABLE_JUDGE=1: force-fallback to keyword rubric
+        (useful for fast training loops without API cost).
+    """
+    if os.environ.get("CLOUD_SEC_DISABLE_JUDGE") == "1":
+        return None
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    try:
+        return LLMJudge()
+    except Exception:
+        return None
 
 
 class CloudSecEnvironment(Environment):
@@ -42,7 +63,7 @@ class CloudSecEnvironment(Environment):
     def __init__(self, task_id: str = "task_01_oidc_rotation"):
         self._store = DataStore(task_id=task_id)
         self._state = State(episode_id=str(uuid4()), step_count=0)
-        self._scorer = RewardScorer(self._store.ground_truth)
+        self._scorer = RewardScorer(self._store.ground_truth, judge=_build_judge())
         # Trajectory log for reward scoring / analysis. Cleared on reset.
         self._trajectory: list[dict] = []
 
@@ -131,8 +152,25 @@ class CloudSecEnvironment(Environment):
 
         summary_lines = ["Evaluation:"]
         for component, info in reward_breakdown.items():
-            hit_marker = "YES" if info["hit"] else "NO "
-            summary_lines.append(f"  [{hit_marker}] {component}  (weight={info['weight']})")
+            if component.startswith("_"):
+                # Internal metadata (e.g., _judge_error)
+                if "reason" in info:
+                    summary_lines.append(f"  [NOTE] {component[1:]}: {info['reason']}")
+                continue
+            weight = info.get("weight", 0.0)
+            if "score" in info:
+                # LLM-judge format: continuous 0-1 score
+                score = info["score"]
+                tag = "BONUS" if info.get("bonus") else "CORE "
+                line = f"  [{tag}] {component:<32} weight={weight:>5.2f}  score={score:.2f}  weighted={info.get('weighted', 0.0):.3f}"
+                just = info.get("justification")
+                if just:
+                    line += f"\n          {just}"
+                summary_lines.append(line)
+            else:
+                # Legacy keyword rubric: binary hit
+                hit_marker = "YES" if info.get("hit") else "NO "
+                summary_lines.append(f"  [{hit_marker}] {component}  (weight={weight})")
         summary_lines.append("")
         summary_lines.append(f"Terminal reward: {terminal_reward:.3f} / 1.000")
         summary_lines.append(f"Step reward accumulated during episode: {scorer_summary['total_step_reward']:.3f}")

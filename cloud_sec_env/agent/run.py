@@ -27,15 +27,49 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from typing import Optional
+
 from dotenv import load_dotenv
 
 from .adapters.anthropic_adapter import AnthropicAdapter
+from .adapters.qwen_adapter import QwenAdapter
 from .harness import RolloutHarness
 
 
 # Load .env from project root (two levels up from this file) before anything else.
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
 load_dotenv(_PROJECT_ROOT / ".env")
+
+
+def _build_adapter(model: str, temperature: float, verbose: bool):
+    """Pick the right adapter based on the model name prefix."""
+    if model.startswith("claude-") or model.startswith("anthropic/"):
+        return AnthropicAdapter(model=model, temperature=temperature, verbose=verbose)
+    if model.startswith("Qwen/") or "qwen" in model.lower():
+        return QwenAdapter(model=model, temperature=temperature, verbose=verbose)
+    raise ValueError(
+        f"Unknown model '{model}'. Expected prefix 'claude-' / 'Qwen/' (or a name containing 'qwen')."
+    )
+
+
+def _check_credentials(model: str) -> Optional[str]:
+    """Return an error string if required credentials aren't in env; None if OK."""
+    if model.startswith("claude-") or model.startswith("anthropic/"):
+        if not os.environ.get("ANTHROPIC_API_KEY"):
+            return (
+                "ANTHROPIC_API_KEY not set.\n"
+                "  1. Edit .env at the project root and fill ANTHROPIC_API_KEY=sk-ant-...\n"
+                "  2. Or export it in your shell: export ANTHROPIC_API_KEY=sk-ant-..."
+            )
+    elif model.startswith("Qwen/") or "qwen" in model.lower():
+        if not os.environ.get("HF_TOKEN"):
+            return (
+                "HF_TOKEN not set.\n"
+                "  1. Create a token at https://huggingface.co/settings/tokens\n"
+                "  2. Edit .env at the project root and fill HF_TOKEN=hf_...\n"
+                "  3. Or export it in your shell: export HF_TOKEN=hf_..."
+            )
+    return None
 
 
 def main() -> int:
@@ -49,13 +83,9 @@ def main() -> int:
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
-    if not os.environ.get("ANTHROPIC_API_KEY"):
-        print(
-            "ERROR: ANTHROPIC_API_KEY not set.\n"
-            "  1. Edit .env at the project root and put your key after ANTHROPIC_API_KEY=\n"
-            "  2. Or export it in your shell: export ANTHROPIC_API_KEY=sk-ant-...",
-            file=sys.stderr,
-        )
+    cred_err = _check_credentials(args.model)
+    if cred_err:
+        print(f"ERROR: {cred_err}", file=sys.stderr)
         return 1
 
     out_root = Path(args.out) if args.out else Path("trajectories")
@@ -65,11 +95,7 @@ def main() -> int:
 
     results: list[dict] = []
     for i in range(args.n):
-        adapter = AnthropicAdapter(
-            model=args.model,
-            temperature=args.temperature,
-            verbose=args.verbose,
-        )
+        adapter = _build_adapter(args.model, args.temperature, args.verbose)
         harness = RolloutHarness(
             adapter=adapter,
             task_id=args.task,
@@ -84,8 +110,9 @@ def main() -> int:
             print(f"[run] rollout failed: {type(e).__name__}: {e}", file=sys.stderr)
             continue
 
-        # Save per-rollout JSON.
-        filename = f"{args.task}_{args.model}_{run_stamp}_r{i+1}.json"
+        # Save per-rollout JSON. Sanitize model name for filesystem safety.
+        safe_model = args.model.replace("/", "__").replace("\\", "__")
+        filename = f"{args.task}_{safe_model}_{run_stamp}_r{i+1}.json"
         out_path = out_root / filename
         out_path.write_text(json.dumps(trajectory, indent=2, default=str), encoding="utf-8")
         print(
@@ -99,7 +126,8 @@ def main() -> int:
 
     # Write a batch summary if more than one rollout.
     if args.n > 1:
-        summary_path = out_root / f"{args.task}_{args.model}_{run_stamp}_summary.json"
+        safe_model = args.model.replace("/", "__").replace("\\", "__")
+        summary_path = out_root / f"{args.task}_{safe_model}_{run_stamp}_summary.json"
         summary_path.write_text(json.dumps(results, indent=2, default=str), encoding="utf-8")
         print(f"[run] batch summary -> {summary_path}")
 

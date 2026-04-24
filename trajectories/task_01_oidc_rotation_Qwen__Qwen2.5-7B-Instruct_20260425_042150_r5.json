@@ -1,0 +1,13 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "temperature": 0.7,
+  "started_at": "2026-04-24T22:52:31.551758+00:00",
+  "duration_s": 0.27,
+  "stop_reason": "adapter_error: HfHubHTTPError: Client error '402 Payment Required' for url 'https://router.huggingface.co/v1/chat/completions' (Request ID: Root=1-69ebf42f-313f377a6a1ac5837d9c82ff;0489ae1d-12a8-449c-b3de-b4c51f3b724e)\nFor more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/402\n\nYou have depleted your monthly included credits. Purchase pre-paid credits to continue using Inference Providers. Alternatively, subscribe to PRO to get 20x more included usage.",
+  "terminated_cleanly": false,
+  "num_steps": 0,
+  "total_reward": 0.0,
+  "terminal_reward": null,
+  "steps": []
+}

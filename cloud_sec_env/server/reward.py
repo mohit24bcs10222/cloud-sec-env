@@ -23,7 +23,12 @@ One RewardScorer instance per episode (reset() at episode start).
 from __future__ import annotations
 
 import re
-from typing import Any
+from typing import Any, Optional
+
+try:
+    from .llm_judge import LLMJudge
+except ImportError:
+    LLMJudge = None  # type: ignore
 
 
 # ----------------------------------------------------------------------
@@ -65,8 +70,15 @@ class RewardScorer:
     """Per-episode stateful scorer. Tracks which step-level achievements
     have been earned (one-shot) plus some running counters."""
 
-    def __init__(self, ground_truth: dict[str, Any]):
+    def __init__(
+        self,
+        ground_truth: dict[str, Any],
+        judge: "Optional[LLMJudge]" = None,
+    ):
+        """If `judge` is provided, score_terminal uses the LLM judge rubric.
+        Otherwise it falls back to the deterministic keyword rubric."""
         self.gt = ground_truth
+        self.judge = judge
         self.reset()
 
     # --- Lifecycle ---
@@ -238,11 +250,23 @@ class RewardScorer:
     # --- Terminal scoring ---
 
     def score_terminal(self, root_cause: str, fix: str) -> tuple[float, dict[str, dict[str, Any]]]:
-        """Score the final submit_answer against ground truth rubric.
+        """Score the final submit_answer.
 
-        Returns (total, breakdown) where breakdown has per-component
-        {"weight": w, "hit": bool}.
+        If an LLM judge was provided at construction, use it (continuous 0-1
+        per dimension + bonus dimensions). Otherwise fall back to the
+        deterministic keyword rubric.
         """
+        if self.judge is not None:
+            result = self.judge.grade(root_cause, fix)
+            # Normalize the judge's breakdown to match the keyword rubric's shape
+            # so downstream consumers (env summary, trajectory log) don't care
+            # which scorer produced it.
+            breakdown = dict(result.get("breakdown", {}))
+            if result.get("judge_error"):
+                breakdown["_judge_error"] = {"weight": 0.0, "hit": False, "reason": result["judge_error"]}
+            return result["total"], breakdown
+
+        # ---- Fallback: keyword rubric ----
         rubric = self.gt.get("reward_rubric", {})
         rubric_root = rubric.get("root_cause_components", {}) or {}
         rubric_fix = rubric.get("fix_components", {}) or {}
