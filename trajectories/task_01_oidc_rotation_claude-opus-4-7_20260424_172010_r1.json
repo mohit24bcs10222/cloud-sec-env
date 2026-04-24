@@ -1,0 +1,13 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "claude-opus-4-7",
+  "temperature": 0.7,
+  "started_at": "2026-04-24T11:50:10.275719+00:00",
+  "duration_s": 0.42,
+  "stop_reason": "adapter_error: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': '`temperature` is deprecated for this model.'}, 'request_id': 'req_011CaNYcdJz1PQj6Hwd9XMu5'}",
+  "terminated_cleanly": false,
+  "num_steps": 0,
+  "total_reward": 0.0,
+  "terminal_reward": null,
+  "steps": []
+}

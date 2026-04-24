@@ -1,0 +1,32 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "claude-opus-4-7",
+  "temperature": 0.7,
+  "started_at": "2026-04-24T11:50:53.908527+00:00",
+  "duration_s": 6.49,
+  "stop_reason": "adapter_error: BadRequestError: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'messages.2: `tool_use` ids were found without `tool_result` blocks immediately after: toolu_01CAMoBLanmrv4CNZsEGAoZz. Each `tool_use` block must have a corresponding `tool_result` block in the next message.'}, 'request_id': 'req_011CaNYgHu3ajJN64eeJi5mk'}",
+  "terminated_cleanly": false,
+  "num_steps": 1,
+  "total_reward": 0.0,
+  "terminal_reward": null,
+  "steps": [
+    {
+      "step": 1,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "ticket_type": "CHG",
+          "query": "cloud-2 auth",
+          "time_range": "T-3d..T+0"
+        },
+        "reasoning": "I'll investigate this auth-svc 5xx alert in cloud-2. Let me start by scoping logs and checking for recent changes."
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='cloud-2 auth', ticket_type=CHG, time_range=T-3d..T+0, limit=10):\nFound 0 matches; showing first 0.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 29,
+      "done": false
+    }
+  ]
+}
