@@ -20,10 +20,9 @@
 {"timestamp":"2026-04-22T00:10:04.802Z","cloud":"cloud-1","service":"sts-broker","level":"INFO","message":"config_reload success: signing_kid=rsa-2026-q2 loaded pubkey_fingerprint=sha256:9a7f...","trace_id":null,"request_id":null}
 {"timestamp":"2026-04-22T00:11:38.201Z","cloud":"cloud-3","service":"sts-broker","level":"INFO","message":"config_reload triggered source=terraform kid_new=rsa-2026-q2 kid_old=rsa-2025-q4","trace_id":null,"request_id":null}
 {"timestamp":"2026-04-22T00:11:40.887Z","cloud":"cloud-3","service":"sts-broker","level":"INFO","message":"config_reload success: signing_kid=rsa-2026-q2 loaded pubkey_fingerprint=sha256:9a7f...","trace_id":null,"request_id":null}
-{"timestamp":"2026-04-22T00:12:09.011Z","cloud":"cloud-2","service":"sts-broker","level":"INFO","message":"terraform config_reload initiated (state_lock_wait=120s)","trace_id":null,"request_id":null}
-{"timestamp":"2026-04-22T00:14:11.445Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"config_reload: state_lock_contention retry=2/3 backoff=45s","trace_id":null,"request_id":null}
-{"timestamp":"2026-04-22T00:14:56.732Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"config_reload: state_lock still held retry=3/3 giving up; no-op applied","trace_id":null,"request_id":null}
-{"timestamp":"2026-04-22T00:15:01.117Z","cloud":"cloud-2","service":"sts-broker","level":"INFO","message":"config_reload exit: signing_kid unchanged (rsa-2025-q4)","trace_id":null,"request_id":null}
+{"timestamp":"2026-04-22T00:12:09.011Z","cloud":"cloud-2","service":"sts-broker","level":"INFO","message":"terraform config_reload initiated","trace_id":null,"request_id":null}
+{"timestamp":"2026-04-22T00:14:11.445Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"config_reload: retry=2/3 backoff=45s","trace_id":null,"request_id":null}
+{"timestamp":"2026-04-22T00:14:56.732Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"config_reload: retry exhausted; config unchanged","trace_id":null,"request_id":null}
 {"timestamp":"2026-04-22T00:17:22.341Z","cloud":"cloud-2","service":"auth-svc","level":"ERROR","message":"upstream 401 from sts-broker tenant=acme","trace_id":"a1b2c3","request_id":"req-a1b2c301"}
 {"timestamp":"2026-04-22T00:17:22.402Z","cloud":"cloud-2","service":"sts-broker","level":"ERROR","message":"JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme","trace_id":"a1b2c3","request_id":"req-a1b2c302"}
 {"timestamp":"2026-04-22T00:22:41.667Z","cloud":"cloud-2","service":"sts-broker","level":"ERROR","message":"JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme","trace_id":"a1b2c4","request_id":"req-a1b2c401"}

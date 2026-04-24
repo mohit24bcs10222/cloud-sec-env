@@ -12,7 +12,7 @@
 
 - id: CHG-1891
   type: CHG
-  title: "OIDC signing key rotation Q2-2026"
+  title: "sts-broker config refresh Q2-2026"
   author: j.patel
   created: "2026-04-22T00:05:00Z"
   applied: "2026-04-22T00:10:00Z"
@@ -157,6 +157,41 @@
   body: |
     Adding acme-legal-prod service account to the read-only allowlist
     for /v1/audit/export endpoint. Requested by acme CSM ticket CST-9821.
+
+- id: CHG-1899
+  type: CHG
+  title: "OIDC vendor allowlist expansion (Acme legal tenant)"
+  author: m.chen
+  created: "2026-04-20T13:30:00Z"
+  applied: "2026-04-20T13:45:00Z"
+  closed: "2026-04-20T14:00:00Z"
+  status: closed
+  affected_services: [policy-svc]
+  affected_clouds: [cloud-1]
+  tags: [oidc, allowlist, acme]
+  body: |
+    Expand OIDC tenant allowlist to include `acme-legal-prod` service account
+    for read-only access to /v1/audit/export. Requested via CST-9821.
+    Applied only to cloud-1 (acme-legal infra lives there).
+    Does NOT touch sts-broker or signing-key config.
+
+- id: CHG-1894
+  type: CHG
+  title: "Deprecate OIDC v1 JWT validation path in sts-broker"
+  author: a.rodriguez
+  created: "2026-04-21T10:12:00Z"
+  applied: "2026-04-21T10:30:00Z"
+  closed: "2026-04-21T10:55:00Z"
+  status: closed
+  affected_services: [sts-broker]
+  affected_clouds: [cloud-1, cloud-2, cloud-3]
+  tags: [oidc, cleanup, sts-broker]
+  body: |
+    Remove the legacy v1 JWT validation code path from sts-broker
+    (superseded by v2 since 2025-Q4). All tenants migrated. Safe to delete.
+
+    Flag-gate only; actual code deletion happens next quarter.
+    No behavioral change for validation of currently-in-flight tokens.
 
 - id: INC-4465
   type: INC

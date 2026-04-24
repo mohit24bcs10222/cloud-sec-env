@@ -1,0 +1,77 @@
+[
+  {
+    "path": "trajectories\\task_01_oidc_rotation_claude-opus-4-5_20260425_030118_r1.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "claude-opus-4-5",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T21:31:19.347434+00:00",
+      "duration_s": 80.29,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 21,
+      "total_reward": 1.4,
+      "terminal_reward": 1.0
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_claude-opus-4-5_20260425_030118_r2.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "claude-opus-4-5",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T21:32:40.176786+00:00",
+      "duration_s": 80.96,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 22,
+      "total_reward": 1.5,
+      "terminal_reward": 1.0
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_claude-opus-4-5_20260425_030118_r3.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "claude-opus-4-5",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T21:34:01.853577+00:00",
+      "duration_s": 76.29,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 21,
+      "total_reward": 1.5,
+      "terminal_reward": 1.0
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_claude-opus-4-5_20260425_030118_r4.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "claude-opus-4-5",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T21:35:18.896260+00:00",
+      "duration_s": 79.71,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 18,
+      "total_reward": 1.5,
+      "terminal_reward": 1.0
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_claude-opus-4-5_20260425_030118_r5.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "claude-opus-4-5",
+      "temperature": 0.7,
+      "started_at": "2026-04-24T21:36:39.350105+00:00",
+      "duration_s": 69.62,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 18,
+      "total_reward": 1.5,
+      "terminal_reward": 1.0
+    }
+  }
+]

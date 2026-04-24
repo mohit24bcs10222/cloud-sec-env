@@ -252,26 +252,60 @@ class RewardScorer:
 
         checks: dict[str, tuple[float, bool]] = {}
 
-        # --- Root-cause ---
+        # --- Root-cause (STRICT: compound conditions, not keyword soup) ---
+
+        # (1) identify_chg_1891 -- requires BOTH the ticket ID and the engineer name.
+        # "Something about CHG-1891" isn't enough; must show they saw who applied it.
         if "identify_chg_1891" in rubric_root:
             checks["identify_chg_1891"] = (
                 rubric_root["identify_chg_1891"]["weight"],
-                "chg-1891" in root_lc,
+                "chg-1891" in root_lc and "j.patel" in root_lc,
             )
+
+        # (2) identify_cloud2_scope -- "cloud-2" alone isn't enough. Agent must show
+        # scope discipline: EITHER say "cloud-2 only" explicitly OR acknowledge that
+        # cloud-1 and cloud-3 are healthy (proving they thought about all three clouds).
         if "identify_cloud2_scope" in rubric_root:
-            checks["identify_cloud2_scope"] = (
-                rubric_root["identify_cloud2_scope"]["weight"],
-                "cloud-2" in root_lc,
+            scope_ok = "cloud-2" in root_lc and (
+                "cloud-2 only" in root_lc
+                or "only cloud-2" in root_lc
+                or "only affects cloud-2" in root_lc
+                or ("cloud-1" in root_lc and "cloud-3" in root_lc)
             )
+            checks["identify_cloud2_scope"] = (rubric_root["identify_cloud2_scope"]["weight"], scope_ok)
+
+        # (3) identify_state_lock_mechanism -- must mention "state lock" AND either
+        # name the contending engineer (m.chen) or explicitly say "concurrent".
+        # Generic "silent failure" no longer counts on its own.
         if "identify_state_lock_mechanism" in rubric_root:
+            mentions_state_lock = "state lock" in root_lc or "state-lock" in root_lc
+            mentions_contention = "m.chen" in root_lc or "concurrent" in root_lc
             checks["identify_state_lock_mechanism"] = (
                 rubric_root["identify_state_lock_mechanism"]["weight"],
-                _has_any(root_lc, ["state lock", "state-lock", "silent failure", "concurrent"]),
+                mentions_state_lock and mentions_contention,
             )
+
+        # (4) identify_stale_key_symptom -- must connect BOTH the rotation event
+        # AND the signature-verification failure. Just saying "kid" isn't enough.
         if "identify_stale_key_symptom" in rubric_root:
+            mentions_signature_failure = (
+                "signature verification" in root_lc
+                or "kid mismatch" in root_lc
+                or "kid=" in root_lc
+                or "kid unknown" in root_lc
+            )
+            mentions_rotation_context = (
+                "rotation" in root_lc
+                or "new key" in root_lc
+                or "new public key" in root_lc
+                or "old key" in root_lc
+                or "stale key" in root_lc
+                or "stale public key" in root_lc
+                or "rsa-2026" in root_lc
+            )
             checks["identify_stale_key_symptom"] = (
                 rubric_root["identify_stale_key_symptom"]["weight"],
-                _has_any(root_lc, ["old public key", "stale public key", "signature verification", "kid"]),
+                mentions_signature_failure and mentions_rotation_context,
             )
 
         # --- Fix ---
