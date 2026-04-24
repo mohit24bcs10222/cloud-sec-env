@@ -1,0 +1,5 @@
+- Wha about if we want to keep our agent dynamic and real time. where actions taken by agent produces result which should produce some outcome, data, results that agent should consider in there next run.
+
+is this the same as the second decision: live simulations vs frozen snapshots
+
+

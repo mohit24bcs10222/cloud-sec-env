@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# OpenEnv runtime
+cloud_sec_env/outputs/
+*.log
+
+# Secrets
+.env
+.env.*
+*.secret
+
+# Large data (if we ever generate it)
+*.parquet
+data/**/*.parquet
