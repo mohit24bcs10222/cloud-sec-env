@@ -26,7 +26,8 @@ try:
     from .llm_judge import LLMJudge
     from .reward import RewardScorer
     from .tools import TOOL_REGISTRY, ToolError, call_tool
-except ImportError:
+except (ImportError, ValueError):
+    # Fallback for top-level-package execution (HF Spaces uvicorn entrypoint).
     from models import CloudSecAction, CloudSecObservation
     from server.data_loader import DataStore
     from server.llm_judge import LLMJudge

@@ -38,7 +38,10 @@ except Exception as e:  # pragma: no cover
 try:
     from ..models import CloudSecAction, CloudSecObservation
     from .cloud_sec_env_environment import CloudSecEnvironment
-except ModuleNotFoundError:
+except (ImportError, ValueError):
+    # Relative imports fail when this module is loaded as the top-level
+    # package (e.g. uvicorn server.app:app from /app/env on HF Spaces).
+    # Fall back to absolute imports.
     from models import CloudSecAction, CloudSecObservation
     from server.cloud_sec_env_environment import CloudSecEnvironment
 
