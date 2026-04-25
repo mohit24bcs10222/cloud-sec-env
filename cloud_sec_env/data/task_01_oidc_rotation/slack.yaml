@@ -80,19 +80,19 @@
 - channel: "#infra-terraform"
   timestamp: "2026-04-22T00:14:00Z"
   author: m.chen
-  text: "hmm, getting a state-lock conflict on cloud-2. anyone else running against that state?"
+  text: "hmm, my terraform plan against cloud-2 is hung. anyone else running anything against that state right now?"
   thread_ts: null
 
 - channel: "#infra-terraform"
   timestamp: "2026-04-22T00:15:00Z"
   author: m.chen
-  text: "oh nvm, i see patel is doing a rotation. i'll back off until he's done."
+  text: "oh nvm, i see patel kicked off something a few minutes ago. i'll back off until he's done."
   thread_ts: "2026-04-22T00:14:00Z"
 
 - channel: "#infra-terraform"
   timestamp: "2026-04-22T00:21:00Z"
   author: m.chen
-  text: "@j.patel FYI i had a stale lock when you were running -- hope my plan didn't mess you up. should be clean on my end now."
+  text: "@j.patel FYI i was poking at cloud-2 state right when your apply was running. hope it didn't step on you."
   thread_ts: "2026-04-22T00:14:00Z"
 
 # Patel never replies to the thread. This is the buried clue.

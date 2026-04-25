@@ -1,0 +1,144 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "temperature": 0.7,
+  "started_at": "2026-04-25T10:21:37.273336+00:00",
+  "duration_s": 14.35,
+  "stop_reason": "adapter_returned_none",
+  "terminated_cleanly": false,
+  "num_steps": 7,
+  "total_reward": 0.1,
+  "terminal_reward": null,
+  "steps": [
+    {
+      "step": 1,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "auth_svc.http.5xx_rate",
+          "cloud": "cloud-2",
+          "time_range": "T-60m..T+0"
+        },
+        "reasoning": "The alert indicates a high 5xx rate on the auth-svc in cloud-2, which has exceeded the threshold for 30 minutes."
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=auth_svc.http.5xx_rate, cloud=cloud-2, service=None, time_range=T-60m..T+0, step=1m):\n2 samples; min=0.081, max=0.087, mean=0.084, last=0.087.\n\nShowing 2 samples:\n  2026-04-22T13:30:00Z   0.081\n  2026-04-22T14:00:00Z   0.087",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 29,
+      "done": false
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "auth-svc",
+          "query": "5xx",
+          "time_range": "T-60m..T+0"
+        },
+        "reasoning": "The metric query shows a consistent 5xx rate of around 8.4% for the last hour, peaking at 8.7% at 14:00 UTC. This aligns with the alert conditions and suggests a persistent issue."
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=auth-svc, time_range=T-60m..T+0, query='5xx', limit=20):\n0 matching log lines; showing first 0.\n",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 28,
+      "done": false
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "sts.jwt_validation_failures",
+          "cloud": "cloud-2",
+          "time_range": "T-60m..T+0",
+          "step": "1m"
+        },
+        "reasoning": "No log lines matching '5xx' were found, which is unusual given the high 5xx rate. This suggests the errors might be occurring at a deeper level, such as in the underlying infrastructure or in the requests themselves."
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=sts.jwt_validation_failures, cloud=cloud-2, service=None, time_range=T-60m..T+0, step=1m):\n2 samples; min=782, max=903, mean=842.5, last=903.\n\nShowing 2 samples:\n  2026-04-22T13:30:00Z   782\n  2026-04-22T14:00:00Z   903",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 27,
+      "done": false
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool_name": "trace_get",
+        "arguments": {
+          "trace_id": "T-14:00:00Z"
+        },
+        "reasoning": "The metric query for JWT validation failures shows a significant increase from 782 to 903 in the last hour, which correlates with the 5xx rate increase. This suggests that JWT validation failures might be causing the HTTP 5xx errors."
+      },
+      "observation_type": "error",
+      "content": "ERROR calling trace_get: Unknown trace_id 'T-14:00:00Z'. No such trace in our store.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 26,
+      "done": false
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "query": "JWT validation",
+          "ticket_type": "CHG",
+          "time_range": "T-7d..T+0"
+        },
+        "reasoning": "The trace ID 'T-14:00:00Z' does not exist, so we cannot retrieve the full span tree. However, the correlation between the increase in JWT validation failures and the 5xx rate suggests that JWT validation issues are likely the root cause."
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='JWT validation', ticket_type=CHG, time_range=T-7d..T+0, limit=10):\nFound 4 matches; showing first 4.\n\nCHG-1891  sts-broker config refresh Q2-2026  (author: j.patel)  2026-04-22T00:05:00Z  closed\n  Quarterly rotation of the OIDC signing key used by sts-broker to validate\n  tenant JWTs. Rolling out new RSA-2048 keypair (kid=rsa-2026-q2) alongside\n  the outgoing kid=rsa-2025-q4 across all 3 clouds.\n  \n  ### Plan\n  1. Generate new keypair in Vault.\n  2. Publish public key to sts-broker config in each cloud via Terraform.\n  3. Rotate Okta tenant signing key to the new private key.\n  4. Verify token validation works across all clouds.\n  5. After 24h soak, deprecate old kid.\n  \n  ### Terraform modules touched\n  - module.cloud_1.sts_broker_keys\n  - module.cloud_2.sts_broker_keys\n  - module.cloud_3.sts_broker_keys\n  \n  ### Apply output (summary)\n  All 3 clouds applied successfully. Total: 3 resources updated.\n  \n  ### Rollback plan\n  Revert the tfvars kid field and reapply. Okta side can switch back to\n  the old private key in <2min.\n  \n  ### Verification\n  Spot-checked cloud-1 with a test JWT from Okta -- validates cleanly\n  under new kid. Good to go. Closing.\n\nCHG-1894  Deprecate OIDC v1 JWT validation path in sts-broker  (author: a.rodriguez)  2026-04-21T10:12:00Z  closed\n  Remove the legacy v1 JWT validation code path from sts-broker\n  (superseded by v2 since 2025-Q4). All tenants migrated. Safe to delete.\n  \n  Flag-gate only; actual code deletion happens next quarter.\n  No behavioral change for validation of currently-in-flight tokens.\n\nCHG-1893  Refresh Okta tenant SAML/OIDC assertion config (quarterly)  (author: m.chen)  2026-04-20T15:00:00Z  closed\n  Quarterly refresh of Okta tenant SAML/OIDC assertion endpoint config in\n  sts-broker. Updates the cached metadata fingerprint for all Okta-federated\n  tenants (acme, bolt, others). Pulls latest tenant_id->endpoint mapping\n  from Okta's well-known endpoints.\n  \n  All 3 clouds applied cleanly. Verified with synthetic Okta JWTs from\n  each tenant -- validations succeed end-to-end.\n  \n  Note: this refreshes the assertion config; it does NOT touch signing keys\n  on the sts-broker side or Okta's signing keys on the IdP side.\n\nCHG-1872  Okta tenant metadata refresh + sts-broker JWKs cache invalidation  (author: m.chen)  2026-04-18T09:10:00Z  closed\n  Refreshing Okta tenant metadata.xml in all sts-broker deployments\n  (quarterly hygiene per SOC2 runbook). Also invalidating the JWKs\n  cache so sts-broker re-fetches next request.\n  \n  All 3 clouds applied cleanly. Verified with a test JWT.",
+      "reward": 0.1,
+      "step_hits": [
+        "finds_chg_1891_ticket"
+      ],
+      "steps_remaining": 25,
+      "done": false
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "sts.jwt_validation_failures",
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "time_range": "T-60m..T+0",
+          "step": "1m"
+        },
+        "reasoning": "The tickets indicate that the sts-broker was updated to use a new OIDC signing key and that the JWT validation path in sts-broker was deprecated. The increase in JWT validation failures suggests that the transition to the new signing key might be causing issues."
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=sts.jwt_validation_failures, cloud=cloud-2, service=sts-broker, time_range=T-60m..T+0, step=1m):\n2 samples; min=782, max=903, mean=842.5, last=903.\n\nShowing 2 samples:\n  2026-04-22T13:30:00Z   782\n  2026-04-22T14:00:00Z   903",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 24,
+      "done": false
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "query": "sts-broker signing key",
+          "ticket_type": "CHG",
+          "time_range": "T-7d..T+0"
+        },
+        "reasoning": "The metric for JWT validation failures on sts-broker in cloud-2 shows a significant spike, which correlates with the increase in 5xx errors. The recent change in the OIDC signing key is the most plausible cause."
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='sts-broker signing key', ticket_type=CHG, time_range=T-7d..T+0, limit=10):\nFound 3 matches; showing first 3.\n\nCHG-1891  sts-broker config refresh Q2-2026  (author: j.patel)  2026-04-22T00:05:00Z  closed\n  Quarterly rotation of the OIDC signing key used by sts-broker to validate\n  tenant JWTs. Rolling out new RSA-2048 keypair (kid=rsa-2026-q2) alongside\n  the outgoing kid=rsa-2025-q4 across all 3 clouds.\n  \n  ### Plan\n  1. Generate new keypair in Vault.\n  2. Publish public key to sts-broker config in each cloud via Terraform.\n  3. Rotate Okta tenant signing key to the new private key.\n  4. Verify token validation works across all clouds.\n  5. After 24h soak, deprecate old kid.\n  \n  ### Terraform modules touched\n  - module.cloud_1.sts_broker_keys\n  - module.cloud_2.sts_broker_keys\n  - module.cloud_3.sts_broker_keys\n  \n  ### Apply output (summary)\n  All 3 clouds applied successfully. Total: 3 resources updated.\n  \n  ### Rollback plan\n  Revert the tfvars kid field and reapply. Okta side can switch back to\n  the old private key in <2min.\n  \n  ### Verification\n  Spot-checked cloud-1 with a test JWT from Okta -- validates cleanly\n  under new kid. Good to go. Closing.\n\nCHG-1893  Refresh Okta tenant SAML/OIDC assertion config (quarterly)  (author: m.chen)  2026-04-20T15:00:00Z  closed\n  Quarterly refresh of Okta tenant SAML/OIDC assertion endpoint config in\n  sts-broker. Updates the cached metadata fingerprint for all Okta-federated\n  tenants (acme, bolt, others). Pulls latest tenant_id->endpoint mapping\n  from Okta's well-known endpoints.\n  \n  All 3 clouds applied cleanly. Verified with synthetic Okta JWTs from\n  each tenant -- validations succeed end-to-end.\n  \n  Note: this refreshes the assertion config; it does NOT touch signing keys\n  on the sts-broker side or Okta's signing keys on the IdP side.\n\nCHG-1899  OIDC vendor allowlist expansion (Acme legal tenant)  (author: m.chen)  2026-04-20T13:30:00Z  closed\n  Expand OIDC tenant allowlist to include `acme-legal-prod` service account\n  for read-only access to /v1/audit/export. Requested via CST-9821.\n  Applied only to cloud-1 (acme-legal infra lives there).\n  Does NOT touch sts-broker or signing-key config.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 23,
+      "done": false
+    }
+  ]
+}

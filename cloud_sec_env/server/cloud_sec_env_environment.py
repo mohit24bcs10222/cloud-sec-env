@@ -107,6 +107,13 @@ class CloudSecEnvironment(Environment):
             content = f"ERROR calling {action.tool_name}: {e}"
             data = {"error": str(e), "tool_name": action.tool_name, "arguments": action.arguments or {}}
             observation_type = "error"
+        except Exception as e:
+            # Defensive: any other tool exception (e.g. TypeError from a list passed
+            # where a string was expected) becomes an error observation rather than
+            # crashing the episode. Agent gets a chance to retry with valid args.
+            content = f"ERROR calling {action.tool_name}: {type(e).__name__}: {e}"
+            data = {"error": f"{type(e).__name__}: {e}", "tool_name": action.tool_name, "arguments": action.arguments or {}}
+            observation_type = "error"
 
         step_reward, step_hits = self._scorer.score_step(
             tool_name=action.tool_name,
@@ -154,27 +161,24 @@ class CloudSecEnvironment(Environment):
         )
         scorer_summary = self._scorer.summary()
 
-        summary_lines = ["Evaluation:"]
+        summary_lines = ["Evaluation (deterministic keyword rubric):"]
         for component, info in reward_breakdown.items():
             if component.startswith("_"):
-                # Internal metadata (e.g., _judge_error)
-                if "reason" in info:
-                    summary_lines.append(f"  [NOTE] {component[1:]}: {info['reason']}")
+                # Auxiliary entries (_judge, _judge_error). Just summarise.
+                if component == "_judge":
+                    judge_total = info.get("score")
+                    err = info.get("judge_error")
+                    if err:
+                        summary_lines.append(f"  [JUDGE] auxiliary LLM-judge errored: {err}")
+                    elif judge_total is not None:
+                        summary_lines.append(
+                            f"  [JUDGE] auxiliary LLM-judge ran -- score={judge_total:.3f} "
+                            f"(see metadata.judge for per-dimension breakdown + justifications)"
+                        )
                 continue
             weight = info.get("weight", 0.0)
-            if "score" in info:
-                # LLM-judge format: continuous 0-1 score
-                score = info["score"]
-                tag = "BONUS" if info.get("bonus") else "CORE "
-                line = f"  [{tag}] {component:<32} weight={weight:>5.2f}  score={score:.2f}  weighted={info.get('weighted', 0.0):.3f}"
-                just = info.get("justification")
-                if just:
-                    line += f"\n          {just}"
-                summary_lines.append(line)
-            else:
-                # Legacy keyword rubric: binary hit
-                hit_marker = "YES" if info.get("hit") else "NO "
-                summary_lines.append(f"  [{hit_marker}] {component}  (weight={weight})")
+            hit_marker = "YES" if info.get("hit") else "NO "
+            summary_lines.append(f"  [{hit_marker}] {component}  (weight={weight})")
         summary_lines.append("")
         summary_lines.append(f"Terminal reward: {terminal_reward:.3f} / 1.000")
         summary_lines.append(f"Step reward accumulated during episode: {scorer_summary['total_step_reward']:.3f}")

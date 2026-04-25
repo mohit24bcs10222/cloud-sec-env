@@ -283,6 +283,59 @@ The cost is small ($0.02-0.05 per episode). The latency is acceptable (~3-5 seco
 
 ---
 
+## Mid-hackathon strategic pivots (added during work)
+
+### Diagnostic discovery: most "Opus difficulty" was prompt-omission, not task hardness
+
+After running 4 calibration rounds trying to push Opus Pass@1 below 50%, we ran a clean diagnostic: **update the system prompt to ask explicitly for elimination reasoning** (the rubric dimension Opus was failing). Result: 5/5 rollouts at terminal=1.0. The "0% Pass@1" we'd been celebrating was an artifact of prompt omission — we'd been penalising Opus for not doing something we never asked it to do. Real fairness test fixed this.
+
+**Lesson:** before claiming a model "can't do X," check that you actually asked it to do X. Prompt construction is part of the eval setup.
+
+### The SFT-vs-RL contradiction we caught late
+
+The "Opus Pass@1 < 50%" goal lives in our internal `Environment_Spec.md` and has an *RL framing*: in RL, reward signal directly trains the agent, so a hard task is the goal. But our planned training approach was *SFT* on Opus trajectories, where Opus is the **teacher** — and an unsuccessful teacher produces bad training data.
+
+These two goals contradict. We spent multiple calibration rounds trying to make Opus fail, which directly damages the SFT data quality.
+
+**Lesson:** the reason for "make the task hard" is approach-dependent. Under RL, hard = good signal. Under SFT, the teacher must succeed (the task can still be hard for the *student*).
+
+### Decision: pivot to SFT-then-GRPO hybrid
+
+After researching the OpenEnv ecosystem (TRL, Unsloth, ART, torchforge, SkyRL), we found that:
+- Every canonical OpenEnv training example uses GRPO (TRL's `GRPOTrainer` is the reference pattern)
+- Every successful example is on simpler tasks (BlackJack 2-action; Wordle 1-tool; 2048 4-action)
+- No public success exists for a 6-tool agentic env trained via GRPO in a hackathon timeline
+- The closest parallel (LinkedIn's GPT-OSS retrospective) used 16 H100 nodes over multiple days
+- GRPO requires non-zero baseline success to learn (group reward variance) — and our Qwen baseline submitted only 40% of rollouts
+
+The hybrid plan:
+1. **SFT first** (proven path, Person B's pipeline already de-risked): Qwen 0% → ~40-60% via behavioral cloning of Opus's near-perfect trajectories.
+2. **GRPO on top of the SFT model** (if time permits): refines the model with env reward signal directly.
+
+This way the floor (SFT) ships even if the ceiling (GRPO) doesn't converge.
+
+### Architecture: keyword rubric primary, LLM judge auxiliary
+
+Initially the LLM-as-judge was the *primary* terminal reward when an `ANTHROPIC_API_KEY` was set. Reproducibility concern: hackathon judges running our env without an API key would lose the rich rubric. Plus: GRPO training needs fast deterministic rewards (LLM judges are slow + noisy).
+
+**Rearchitected:** keyword rubric is now ALWAYS the primary `reward` field. The LLM judge runs as an *auxiliary* layer (when API key available) and writes to `metadata._judge` for richer offline inspection. Best of both worlds:
+- Reproducibility: works without API key
+- RL-friendly: deterministic, fast primary reward
+- Richer eval: judge layer available to researchers
+
+### Qwen baseline measurement (n=5, post-architecture-flip)
+
+| Metric | Value |
+|---|---|
+| Submission completion rate | 40% (2/5) — others died on JSON parsing |
+| Best terminal reward | 0.365 (LLM-judge era) |
+| Mean reward across all 5 | ~0.073 |
+| Failure mode | Adapter JSON parse errors + early-give-up at step 5-10 |
+
+Crucially, when Qwen does submit, it shows partial reasoning ("signing key configuration", "state lock contention" mentioned but vague). This is exactly the kind of partial-success baseline that SFT can bootstrap.
+
+13× gap from Opus (0.073 → 0.98). Plenty of headroom for training improvement.
+
 ## Open items (for the demo / writeup)
 
 - Compose the demo video script around the trajectory of one passing rollout. Lean into the reasoning visible in the agent's `reasoning` field per step.

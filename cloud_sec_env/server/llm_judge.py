@@ -59,17 +59,24 @@ cloud-1 and cloud-3 received the rotation cleanly and are healthy.
 Correct fix: targeted re-apply for cloud-2 only. A global rollback is WRONG
 (breaks cloud-1 and cloud-3 which are healthy on the new key).
 
-### The tempting WRONG hypothesis the agent might fall for: CHG-1888
+### The two tempting WRONG hypotheses the agent might fall for
 
-CHG-1888 is a JWT claim-parser upgrade by the same author (j.patel), same
+**CHG-1888** -- a JWT claim-parser upgrade by the same author (j.patel), same
 service (sts-broker), one day earlier. It produces benign WARN logs on
-cloud-2 ("claim_parser: fallback to legacy format"). An agent might blame
-CHG-1888 because of superficial match.
+cloud-2 ("claim_parser: fallback to legacy format"). Disambiguating test:
+CHG-1888 shipped to cloud-1 AND cloud-2 (excluded cloud-3). If it were the
+cause, cloud-1 would also show JWT validation failures. cloud-1 metrics are
+flat -> CHG-1888 cannot be the cause.
 
-THE DISAMBIGUATING TEST: CHG-1888 shipped to cloud-1 AND cloud-2. If it were
-the cause, cloud-1 would show matching failures. cloud-1 metrics are flat.
-Therefore CHG-1888 CANNOT be the cause. Only CHG-1891 produces the
-cloud-2-asymmetric behavior (state-lock silent fail on cloud-2 only).
+**CHG-1893** -- m.chen's quarterly Okta tenant assertion config refresh
+applied 2 days earlier across all 3 clouds. Plausibly explains Acme login
+failures (Acme uses Okta). Disambiguating tests:
+  (a) Bolt also uses Okta and is healthy -> not an Okta-side issue.
+  (b) CHG-1893 was applied to all clouds, only cloud-2 fails -> inconsistent
+      with a tenant-config-refresh cause.
+
+A high-quality answer rules out at least ONE of these alternatives by name
+with the disambiguating reasoning. An ideal answer rules out both.
 
 ### Other red herrings (lesser importance)
 

@@ -1,0 +1,62 @@
+[
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_155656_r1.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-25T10:26:56.701854+00:00",
+      "duration_s": 20.95,
+      "stop_reason": "adapter_returned_none",
+      "terminated_cleanly": false,
+      "num_steps": 12,
+      "total_reward": 0.0,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_155656_r2.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-25T10:27:17.857398+00:00",
+      "duration_s": 15.12,
+      "stop_reason": "adapter_returned_none",
+      "terminated_cleanly": false,
+      "num_steps": 8,
+      "total_reward": 0.3,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_155656_r3.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-25T10:27:33.200477+00:00",
+      "duration_s": 33.21,
+      "stop_reason": "adapter_returned_none",
+      "terminated_cleanly": false,
+      "num_steps": 19,
+      "total_reward": 0.1,
+      "terminal_reward": null
+    }
+  },
+  {
+    "path": "trajectories\\task_01_oidc_rotation_Qwen__Qwen2.5-7B-Instruct_20260425_155656_r5.json",
+    "summary": {
+      "task_id": "task_01_oidc_rotation",
+      "model": "Qwen/Qwen2.5-7B-Instruct",
+      "temperature": 0.7,
+      "started_at": "2026-04-25T10:28:09.385863+00:00",
+      "duration_s": 29.61,
+      "stop_reason": "done",
+      "terminated_cleanly": true,
+      "num_steps": 11,
+      "total_reward": 0.2,
+      "terminal_reward": 0.1
+    }
+  }
+]

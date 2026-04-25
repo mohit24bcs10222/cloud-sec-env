@@ -107,6 +107,25 @@ red_herrings:
     distractor_evidence:
       - "Agent must cross-check with metrics/logs, not trust the confident human"
 
+  - id: chg_1893_okta_refresh
+    description: |
+      CHG-1893 is the SECOND tempting wrong hypothesis. m.chen refreshed
+      Okta tenant SAML/OIDC config 2 days before the incident, applied to
+      all 3 clouds. An Okta-side change could plausibly explain Acme JWT
+      validation failures (Acme uses Okta).
+      Disambiguating tests:
+        (a) Bolt also federates via Okta. If CHG-1893 broke Okta config,
+            Bolt would also fail. Bolt is healthy -> not CHG-1893.
+        (b) CHG-1893 applied to all 3 clouds; only cloud-2 fails ->
+            inconsistent with a tenant-config-refresh cause.
+    distractor_evidence:
+      - "CHG-1893 ticket in ticket_search with 'OIDC' and 'Okta' keywords"
+      - "Recent timing (2 days prior to incident)"
+      - "Mentions Acme tenant in body"
+    disambiguation_test:
+      - "Bolt also uses Okta and is unaffected -> not an Okta-side issue"
+      - "CHG-1893 deployed to all clouds; only cloud-2 broken -> can't be all-cloud cause"
+
   - id: chg_1888_claim_parser
     description: |
       CHG-1888 is the TEMPTING WRONG hypothesis. Same author (j.patel), same

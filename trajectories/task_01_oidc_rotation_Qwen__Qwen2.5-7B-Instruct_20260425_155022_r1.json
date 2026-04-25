@@ -1,0 +1,141 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "Qwen/Qwen2.5-7B-Instruct",
+  "temperature": 0.7,
+  "started_at": "2026-04-25T10:20:22.685740+00:00",
+  "duration_s": 14.68,
+  "stop_reason": "adapter_returned_none",
+  "terminated_cleanly": false,
+  "num_steps": 7,
+  "total_reward": 0.1,
+  "terminal_reward": null,
+  "steps": [
+    {
+      "step": 1,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "auth-svc",
+          "query": "5xx",
+          "time_range": "T-30m..T+0"
+        },
+        "reasoning": "The alert indicates a high 5xx rate on the auth-svc in cloud-2, which is likely due to a service failure or configuration change. The first step is to check the logs for more context."
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=auth-svc, time_range=T-30m..T+0, query='5xx', limit=20):\n0 matching log lines; showing first 0.\n",
+      "reward": 0.1,
+      "step_hits": [
+        "correct_first_tool"
+      ],
+      "steps_remaining": 29,
+      "done": false
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "auth_svc.http.5xx_rate",
+          "cloud": "cloud-2",
+          "time_range": "T-30m..T+0"
+        },
+        "reasoning": "No logs were found for the auth-svc in cloud-2 with 5xx errors in the last 30 minutes. This suggests either the service is not logging these errors, or the issue is more recent or severe. Next, I will check the metric query to see if there are any recent spikes in 5xx errors."
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=auth_svc.http.5xx_rate, cloud=cloud-2, service=None, time_range=T-30m..T+0, step=1m):\n1 samples; min=0.087, max=0.087, mean=0.087, last=0.087.\n\nShowing 1 samples:\n  2026-04-22T14:00:00Z   0.087",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 28,
+      "done": false
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool_name": "trace_get",
+        "arguments": {
+          "trace_id": "T-1440000000000000000"
+        },
+        "reasoning": "The metric query shows a consistent 5xx rate of 8.7% for the auth-svc in cloud-2 over the last 30 minutes. This aligns with the alert and confirms the high error rate. Next, I will check the API calls during this period to identify any potential triggers, such as recent changes or traffic spikes."
+      },
+      "observation_type": "error",
+      "content": "ERROR calling trace_get: Unknown trace_id 'T-1440000000000000000'. No such trace in our store.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 27,
+      "done": false
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "query": "auth-svc cloud-2",
+          "ticket_type": "CHG",
+          "time_range": "T-24h..T+0"
+        },
+        "reasoning": "The trace ID provided is invalid, so I will instead search for recent change tickets (CHG) to see if there have been any deployments or configuration changes that could have caused the issue."
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='auth-svc cloud-2', ticket_type=CHG, time_range=T-24h..T+0, limit=10):\nFound 0 matches; showing first 0.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 26,
+      "done": false
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "query": "error",
+          "time_range": "T-30m..T+0"
+        },
+        "reasoning": "No recent change tickets related to auth-svc in cloud-2 were found. This suggests that the issue may not be due to a recent configuration change or deployment. However, let's also check if there were any significant events or outages in other related services that could have impacted the auth-svc."
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=sts-broker, time_range=T-30m..T+0, query='error', limit=20):\n0 matching log lines; showing first 0.\n",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 25,
+      "done": false
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "query": "auth-svc config",
+          "ticket_type": "CHG",
+          "time_range": "T-24h..T+0"
+        },
+        "reasoning": "No errors were found in the sts-broker logs, which suggests that the issue is likely specific to the auth-svc and not related to the sts-broker. Given the consistent 5xx rate and the absence of recent changes or related service issues, the most plausible alternative is that there might be a configuration issue or a misconfiguration in the auth-svc itself. Let's check the auth-svc configuration and see if there have been any recent configuration changes that could have caused this issue."
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='auth-svc config', ticket_type=CHG, time_range=T-24h..T+0, limit=10):\nFound 0 matches; showing first 0.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 24,
+      "done": false
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool_name": "kb_search",
+        "arguments": {
+          "query": "auth-svc 5xx",
+          "limit": 3
+        },
+        "reasoning": "No configuration changes related to the auth-svc were found in the last 24 hours. This further supports the hypothesis that the issue might be due to a misconfiguration or a bug within the auth-svc itself. Given the consistent 5xx rate and the lack of recent changes, the most plausible root cause is a bug in the auth-svc that is causing it to return 5xx errors."
+      },
+      "observation_type": "tool_result",
+      "content": "kb_search(query='auth-svc 5xx', limit=3):\nFound 5 matches. Showing top 3 with full content.\n\n============================================================\n[runbooks/auth-svc-5xx] (kb-38)  |  last edited 2026-02-10\n============================================================\n# auth-svc 5xx rate alert -- Runbook\n\nFires when `auth-svc` HTTP 5xx rate exceeds **5%** for 30 minutes on any cloud.\n\n## First 5 minutes\n\n1. Confirm which cloud the alert scopes to (label: `cloud=cloud-N`).\n2. Open the cloud-scoped Grafana dashboard: `grafana://auth-svc-health`.\n3. Check upstream dependencies: `sts-broker`, `policy-svc`, `api-gateway`.\n\n## Usual suspects (in order of frequency)\n\n### 1. sts-broker validation failures\n\nIf `auth-svc` returns 5xx and traces show failures at the `sts-broker` hop,\nit's token validation. Check:\n\n- JWKs cache: `sts-broker admin jwks-info`.\n- Recent changes to sts-broker config (Terraform).\n- Okta tenant signing key status.\n\n### 2. policy-svc timeouts\n\n`auth-svc` calls `policy-svc` after validation. If policy-svc is slow,\nauth-svc times out upstream -> 504. Check policy-svc metrics.\n\n### 3. Downstream DB or cache saturation\n\nCheck `sts-broker` Redis connection pool exhaustion. Known flaky dependency;\ncan contribute ~0.5-1% baseline 5xx even when healthy.\n\n## Scoping discipline\n\nAlways scope investigations to the alerting cloud first. Other clouds with the\nsame service may look healthy and distract. Do NOT conclude \"it's a global\nproblem\" without metric data from the other clouds.\n\n## When sts-broker is the prime suspect\n\n- Check `sts.jwt_validation_failures` -- step changes correlate with\n  config changes.\n- Cross-reference recent Terraform applies via `ticket_search type=CHG`.\n- Check `#infra-terraform` for any state-lock chatter around the apply window.\n\n## Escalation\n\nAfter 30 min of active investigation without a root cause, page the\non-call platform engineer. SEV-2+ customer-impacting should not wait past\n45 min total time-to-engagement.\n\n## Related\n\n- [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\n- [Terraform Best Practices](kb://terraform/best-practices)\n- [Incident Response Playbook](kb://runbooks/incident-response)\n\n============================================================\n[architecture/oidc-federation] (kb-24)  |  last edited 2025-11-22\n============================================================\n# OIDC Federation Overview\n\nHow NimbusGuard federates with customer identity providers (Okta, Azure AD, Ping) over OIDC.\n\n## The model in one diagram\n\n```\nCustomer IdP (Okta / Azure AD / Ping)\n    \u2502\n    \u2502  1. User authenticates; IdP issues JWT signed with IdP's private key.\n    \u2502\n    \u25bc\nNimbusGuard api-gateway\n    \u2502\n    \u2502  2. Forwards JWT to auth-svc.\n    \u2502\n    \u25bc\nauth-svc\n    \u2502\n    \u2502  3. Calls sts-broker to validate the JWT.\n    \u2502\n    \u25bc\nsts-broker\n    \u2502\n    \u2502  4. Verifies signature using cached JWKs (IdP public keys).\n    \u2502  5. Returns validation result.\n    \u2502\n    \u25bc\nauth-svc (returns session token)\n```\n\n## Key validation flow details\n\nWhen a JWT arrives at `sts-broker`, the following happens:\n\n1. Parse the JWT header. Extract the `kid` claim.\n2. Look up the `kid` in the local JWKs cache (5-min TTL).\n3. If cache miss, fetch the JWKs set from the IdP and re-populate.\n4. Verify signature using the matching public key.\n5. Validate claims: `iss`, `aud`, `exp`, `nbf`, `iat`.\n6. Return decoded claims or a validation failure.\n\n## Common failure modes\n\n- **`kid` not in JWKs set**: signature check fails immediately. Logs show\n  `signature verification failed: kid=<kid> unknown`. Usually means IdP\n  rotated its signing key but our cache is stale (or our config doesn't\n  know the new kid).\n- **Clock skew**: `exp` or `nbf` validation fails if our clock is off by\n  more than 60s from IdP. Rare, but happens during clock-service outages.\n- **Revoked token**: IdP revokes a session; our validation still succeeds\n  until the token expires. We depend on IdP-side revocation; NimbusGuard\n  does not implement its own JWT revocation store.\n\n## Key rotation\n\nBoth our signing keys (for our own-issued tokens) and IdP-side signing keys\nrotate. See [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\nfor the signing-key rotation procedure on our side.\n\n## Tenant isolation\n\nEach tenant's IdP config lives in `sts-broker`'s per-tenant config map:\n`sts-broker-config/tenants/<tenant_id>.yaml`. Tenant-specific claims\n(issuer URL, audience, trusted kids) are pinned here.\n\n## Related\n\n- [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\n- [Auth-svc 5xx Runbook](kb://runbooks/auth-svc-5xx)\n\n============================================================\n[incidents/2024-auth-outage] (kb-09)  |  last edited 2024-06-03\n============================================================\n# Authentication outage -- retrospective (2024-06-03)\n\n**STATUS:** Closed. Kept for historical reference.\n\n> **NOTE:** This retro references the legacy `nimbus-jwt` library which was\n> retired in October 2024 and replaced by `sts-broker`. Log message patterns\n> shown here no longer match production logs. Use with care as a historical\n> reference only.\n\n## Summary\n\nOn 2024-06-03 at 08:22 UTC, cloud-1 `auth-gateway` (legacy service, now merged into api-gateway) started returning 503 to all tenants for approximately 18 minutes.\n\n## Root cause\n\nA deploy of `nimbus-jwt` 3.11.0 introduced a regression where the library's\nLRU cache for Okta public keys had its capacity set to 0. The cache was\ninstantiated but every lookup missed and re-fetched from Okta, saturating\nthe Okta rate limit.\n\n## Symptoms to look for (legacy)\n\n- `nimbus-jwt: fetching JWKS from okta` at >100 rps in auth-gateway logs.\n- `auth-gateway 503 upstream_ratelimited` in api-gateway logs.\n- Okta-side rate-limit alerts fired at the same time.\n- Metric `nimbus_jwt.jwks_cache.hit_ratio = 0.0`.\n\n## Resolution\n\nRolled back `nimbus-jwt` to 3.10.4 via canary revert. Upstream fix shipped\nin 3.11.1 the following week.\n\n## Lessons learned\n\n- Always verify cache hit ratios in staging before merging library upgrades.\n- Rate limits on upstream IdPs are a real risk; engineer for graceful\n  degradation (pre-fetched and pinned keys).\n\n## Relevance to current state\n\nMinimal. `sts-broker` (the successor to `auth-gateway`) caches JWKs via a\ndifferent mechanism and is no longer coupled to `nimbus-jwt`. The failure\nmodes described above cannot occur in current production.\n\n## Related\n\n- [Auth-svc 5xx Runbook](kb://runbooks/auth-svc-5xx) (current)\n- [OIDC Federation Overview](kb://architecture/oidc-federation)",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 23,
+      "done": false
+    }
+  ]
+}

@@ -280,8 +280,11 @@ def _fmt_trace_tree(trace: dict[str, Any]) -> list[str]:
 
 def trace_get(args: dict[str, Any], store: DataStore) -> tuple[str, dict[str, Any]]:
     trace_id = args.get("trace_id")
+    if isinstance(trace_id, list) and len(trace_id) == 1 and isinstance(trace_id[0], str):
+        # Tolerate single-element-list quirks that some prompted-JSON LLMs produce.
+        trace_id = trace_id[0]
     if not trace_id or not isinstance(trace_id, str):
-        raise ToolError("trace_get requires arg 'trace_id' (str).")
+        raise ToolError("trace_get requires arg 'trace_id' as a string (got: %r)." % (trace_id,))
     trace = store.traces.get(trace_id)
     if not trace:
         raise ToolError(f"Unknown trace_id '{trace_id}'. No such trace in our store.")

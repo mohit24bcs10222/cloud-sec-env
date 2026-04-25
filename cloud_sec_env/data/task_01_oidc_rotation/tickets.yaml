@@ -39,9 +39,7 @@
     - module.cloud_3.sts_broker_keys
 
     ### Apply output (summary)
-    - cloud-1: apply complete. 1 resource updated.
-    - cloud-2: apply complete with warnings. See terraform.log for details.
-    - cloud-3: apply complete. 1 resource updated.
+    All 3 clouds applied successfully. Total: 3 resources updated.
 
     ### Rollback plan
     Revert the tfvars kid field and reapply. Okta side can switch back to
@@ -208,6 +206,29 @@
     for read-only access to /v1/audit/export. Requested via CST-9821.
     Applied only to cloud-1 (acme-legal infra lives there).
     Does NOT touch sts-broker or signing-key config.
+
+- id: CHG-1893
+  type: CHG
+  title: "Refresh Okta tenant SAML/OIDC assertion config (quarterly)"
+  author: m.chen
+  created: "2026-04-20T15:00:00Z"
+  applied: "2026-04-20T15:30:00Z"
+  closed: "2026-04-20T15:42:00Z"
+  status: closed
+  affected_services: [sts-broker]
+  affected_clouds: [cloud-1, cloud-2, cloud-3]
+  tags: [okta, oidc, quarterly, tenant-config]
+  body: |
+    Quarterly refresh of Okta tenant SAML/OIDC assertion endpoint config in
+    sts-broker. Updates the cached metadata fingerprint for all Okta-federated
+    tenants (acme, bolt, others). Pulls latest tenant_id->endpoint mapping
+    from Okta's well-known endpoints.
+
+    All 3 clouds applied cleanly. Verified with synthetic Okta JWTs from
+    each tenant -- validations succeed end-to-end.
+
+    Note: this refreshes the assertion config; it does NOT touch signing keys
+    on the sts-broker side or Okta's signing keys on the IdP side.
 
 - id: CHG-1894
   type: CHG

@@ -257,18 +257,41 @@ class RewardScorer:
     ) -> tuple[float, dict[str, dict[str, Any]]]:
         """Score the final submit_answer.
 
-        If an LLM judge was provided at construction, use it (trajectory-aware
-        continuous 0-1 per dimension + bonus dimensions). Otherwise fall back
-        to the deterministic keyword rubric.
-        """
-        if self.judge is not None:
-            result = self.judge.grade(root_cause, fix, trajectory=trajectory)
-            breakdown = dict(result.get("breakdown", {}))
-            if result.get("judge_error"):
-                breakdown["_judge_error"] = {"weight": 0.0, "hit": False, "reason": result["judge_error"]}
-            return result["total"], breakdown
+        ALWAYS uses the deterministic keyword rubric as the primary `reward`.
+        IF an LLM judge was provided at construction, ALSO runs it for an
+        auxiliary scoring layer (richer per-dimension justifications + extra
+        dimensions like evidence-supported claims). The judge breakdown is
+        nested under a "_judge" key in the breakdown dict.
 
-        # ---- Fallback: keyword rubric ----
+        This separation means:
+          - Training (RL/SFT filtering) uses fast, deterministic keyword reward.
+          - Reproducibility: hackathon judges without an Anthropic API key get
+            full primary functionality.
+          - Researchers with an API key get richer eval signal in metadata.
+        """
+        # Compute primary keyword-rubric score (always).
+        keyword_total, keyword_breakdown = self._score_terminal_keyword(root_cause, fix)
+
+        # Optionally augment with LLM-judge analysis.
+        if self.judge is not None:
+            judge_result = self.judge.grade(root_cause, fix, trajectory=trajectory)
+            keyword_breakdown["_judge"] = {
+                "score": judge_result.get("total"),
+                "core_score": judge_result.get("core_score"),
+                "bonus_score": judge_result.get("bonus_score"),
+                "breakdown": judge_result.get("breakdown", {}),
+                "judge_model": judge_result.get("judge_model"),
+                "judge_error": judge_result.get("judge_error"),
+            }
+
+        return keyword_total, keyword_breakdown
+
+    def _score_terminal_keyword(
+        self,
+        root_cause: str,
+        fix: str,
+    ) -> tuple[float, dict[str, dict[str, Any]]]:
+        """Deterministic keyword-rubric terminal scoring."""
         rubric = self.gt.get("reward_rubric", {})
         rubric_root = rubric.get("root_cause_components", {}) or {}
         rubric_fix = rubric.get("fix_components", {}) or {}
@@ -335,10 +358,14 @@ class RewardScorer:
             )
 
         # --- Fix ---
+        # Normalize fix_lc to also handle underscore variants (e.g. terraform module
+        # names like `module.cloud_2.sts_broker_keys` should still register as
+        # "cloud-2 targeted").
+        fix_lc_norm = fix_lc.replace("cloud_2", "cloud-2").replace("cloud_1", "cloud-1").replace("cloud_3", "cloud-3")
         if "proposes_targeted_reapply" in rubric_fix:
             checks["proposes_targeted_reapply"] = (
                 rubric_fix["proposes_targeted_reapply"]["weight"],
-                (_has_any(fix_lc, ["re-apply", "reapply", "apply"]) and "cloud-2" in fix_lc),
+                (_has_any(fix_lc_norm, ["re-apply", "reapply", "apply"]) and "cloud-2" in fix_lc_norm),
             )
         if "avoids_global_rollback" in rubric_fix:
             checks["avoids_global_rollback"] = (

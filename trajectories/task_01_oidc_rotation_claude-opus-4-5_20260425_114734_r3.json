@@ -1,0 +1,476 @@
+{
+  "task_id": "task_01_oidc_rotation",
+  "model": "claude-opus-4-5",
+  "temperature": 0.7,
+  "started_at": "2026-04-25T06:21:26.850158+00:00",
+  "duration_s": 119.73,
+  "stop_reason": "done",
+  "terminated_cleanly": true,
+  "num_steps": 24,
+  "total_reward": 1.5,
+  "terminal_reward": 1.0,
+  "steps": [
+    {
+      "step": 1,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "auth-svc",
+          "query": "error",
+          "time_range": "T-60m..T+0",
+          "limit": 30
+        },
+        "reasoning": "I'm on it. Let me start investigating this SEV-2 alert for auth-svc 5xx errors in cloud-2.\n\nFirst, let me check the logs for auth-svc in cloud-2 to understand what errors are occurring."
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=auth-svc, time_range=T-60m..T+0, query='error', limit=30):\n0 matching log lines; showing first 0.\n",
+      "reward": 0.1,
+      "step_hits": [
+        "correct_first_tool"
+      ],
+      "steps_remaining": 29,
+      "done": false
+    },
+    {
+      "step": 2,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "auth-svc",
+          "query": "500",
+          "time_range": "T-60m..T+0",
+          "limit": 30
+        },
+        "reasoning": "No results with \"error\". Let me try searching for 5xx or 500 status codes:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=auth-svc, time_range=T-60m..T+0, query='500', limit=30):\n0 matching log lines; showing first 0.\n",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 28,
+      "done": false
+    },
+    {
+      "step": 3,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "auth-svc",
+          "time_range": "T-60m..T+0",
+          "limit": 30
+        },
+        "reasoning": "Let me try a broader search without a specific query to see what's happening:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=auth-svc, time_range=T-60m..T+0, query=None, limit=30):\n6 matching log lines; showing first 6.\n\n[2026-04-22T13:05:18.881Z] cloud-2 auth-svc       ERROR req=req-a1b2f201 trace=a1b2f2 | upstream 401 from sts-broker tenant=acme\n[2026-04-22T13:22:05.287Z] cloud-2 auth-svc       ERROR req=req-a1b2f402 trace=a1b2f4 | upstream 401 from sts-broker tenant=acme\n[2026-04-22T13:42:08.118Z] cloud-2 auth-svc       ERROR req=req-a1b2f801 trace=a1b2f8 | upstream 401 from sts-broker tenant=acme\n[2026-04-22T13:50:01.991Z] cloud-2 auth-svc       ERROR req=req-a1b30101 trace=a1b301 | upstream 401 from sts-broker tenant=acme\n[2026-04-22T13:58:40.201Z] cloud-2 auth-svc       ERROR req=req-a1b30501 trace=a1b305 | upstream 401 from sts-broker tenant=acme\n[2026-04-22T14:01:40.881Z] cloud-2 auth-svc       ERROR req=req-a1b30901 trace=a1b309 | upstream 401 from sts-broker tenant=acme",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 27,
+      "done": false
+    },
+    {
+      "step": 4,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "query": "acme",
+          "time_range": "T-60m..T+0",
+          "limit": 30
+        },
+        "reasoning": "Interesting! The errors are coming from upstream 401s from sts-broker, specifically for tenant=acme. Let me check the sts-broker logs to understand why it's returning 401s:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=sts-broker, time_range=T-60m..T+0, query='acme', limit=30):\n17 matching log lines; showing first 17.\n\n[2026-04-22T13:05:18.954Z] cloud-2 sts-broker     ERROR req=req-a1b2f202 trace=a1b2f2 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:18:41.998Z] cloud-2 sts-broker     ERROR req=req-a1b2f301 trace=a1b2f3 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:22:05.200Z] cloud-2 sts-broker     ERROR req=req-a1b2f401 trace=a1b2f4 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:28:14.445Z] cloud-2 sts-broker     ERROR req=req-a1b2f501 trace=a1b2f5 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:35:22.100Z] cloud-2 sts-broker     ERROR req=req-a1b2f601 trace=a1b2f6 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:40:14.002Z] cloud-2 sts-broker     ERROR req=req-a1b2f701 trace=a1b2f7 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:42:08.209Z] cloud-2 sts-broker     ERROR req=req-a1b2f802 trace=a1b2f8 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:45:00.331Z] cloud-2 sts-broker     ERROR req=req-a1b2f901 trace=a1b2f9 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:50:02.102Z] cloud-2 sts-broker     ERROR req=req-a1b30102 trace=a1b301 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:52:41.001Z] cloud-2 sts-broker     ERROR req=req-a1b30201 trace=a1b302 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:55:18.559Z] cloud-2 sts-broker     ERROR req=req-a1b30301 trace=a1b303 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:57:12.003Z] cloud-2 sts-broker     ERROR req=req-a1b30401 trace=a1b304 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T13:58:40.290Z] cloud-2 sts-broker     ERROR req=req-a1b30502 trace=a1b305 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T14:00:11.203Z] cloud-2 sts-broker     ERROR req=req-a1b30601 trace=a1b306 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T14:00:44.112Z] cloud-2 sts-broker     ERROR req=req-a1b30701 trace=a1b307 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T14:01:22.442Z] cloud-2 sts-broker     ERROR req=req-a1b30801 trace=a1b308 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T14:01:40.988Z] cloud-2 sts-broker     ERROR req=req-a1b30902 trace=a1b309 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme",
+      "reward": 0.1,
+      "step_hits": [
+        "finds_signature_error_log"
+      ],
+      "steps_remaining": 26,
+      "done": false
+    },
+    {
+      "step": 5,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "ticket_type": "CHG",
+          "query": "acme",
+          "time_range": "T-7d..T+0",
+          "limit": 10
+        },
+        "reasoning": "This is very clear - JWT signature verification is failing because `kid=rsa-2026-q2` is unknown for tenant=acme. This looks like a key rotation issue where the new key ID isn't recognized. Let me check for recent change tickets related to this:"
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='acme', ticket_type=CHG, time_range=T-7d..T+0, limit=10):\nFound 2 matches; showing first 2.\n\nCHG-1899  OIDC vendor allowlist expansion (Acme legal tenant)  (author: m.chen)  2026-04-20T13:30:00Z  closed\n  Expand OIDC tenant allowlist to include `acme-legal-prod` service account\n  for read-only access to /v1/audit/export. Requested via CST-9821.\n  Applied only to cloud-1 (acme-legal infra lives there).\n  Does NOT touch sts-broker or signing-key config.\n\nCHG-1885  policy-svc allowlist update for acme legal API access  (author: m.chen)  2026-04-19T11:55:00Z  closed\n  Adding acme-legal-prod service account to the read-only allowlist\n  for /v1/audit/export endpoint. Requested by acme CSM ticket CST-9821.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 25,
+      "done": false
+    },
+    {
+      "step": 6,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "ticket_type": "CHG",
+          "query": "sts-broker",
+          "time_range": "T-7d..T+0",
+          "limit": 10
+        },
+        "reasoning": "These changes are from a few days ago and don't seem directly related to sts-broker or signing keys. Let me search for changes related to sts-broker or JWKS/keys:"
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='sts-broker', ticket_type=CHG, time_range=T-7d..T+0, limit=10):\nFound 5 matches; showing first 5.\n\nCHG-1891  sts-broker config refresh Q2-2026  (author: j.patel)  2026-04-22T00:05:00Z  closed\n  Quarterly rotation of the OIDC signing key used by sts-broker to validate\n  tenant JWTs. Rolling out new RSA-2048 keypair (kid=rsa-2026-q2) alongside\n  the outgoing kid=rsa-2025-q4 across all 3 clouds.\n  \n  ### Plan\n  1. Generate new keypair in Vault.\n  2. Publish public key to sts-broker config in each cloud via Terraform.\n  3. Rotate Okta tenant signing key to the new private key.\n  4. Verify token validation works across all clouds.\n  5. After 24h soak, deprecate old kid.\n  \n  ### Terraform modules touched\n  - module.cloud_1.sts_broker_keys\n  - module.cloud_2.sts_broker_keys\n  - module.cloud_3.sts_broker_keys\n  \n  ### Apply output (summary)\n  - cloud-1: apply complete. 1 resource updated.\n  - cloud-2: apply complete with warnings. See terraform.log for details.\n  - cloud-3: apply complete. 1 resource updated.\n  \n  ### Rollback plan\n  Revert the tfvars kid field and reapply. Okta side can switch back to\n  the old private key in <2min.\n  \n  ### Verification\n  Spot-checked cloud-1 with a test JWT from Okta -- validates cleanly\n  under new kid. Good to go. Closing.\n\nCHG-1894  Deprecate OIDC v1 JWT validation path in sts-broker  (author: a.rodriguez)  2026-04-21T10:12:00Z  closed\n  Remove the legacy v1 JWT validation code path from sts-broker\n  (superseded by v2 since 2025-Q4). All tenants migrated. Safe to delete.\n  \n  Flag-gate only; actual code deletion happens next quarter.\n  No behavioral change for validation of currently-in-flight tokens.\n\nCHG-1888  sts-broker JWT claim-parser upgrade  (author: j.patel)  2026-04-21T09:40:00Z  closed\n  Upgrade sts-broker's JWT claim-parser to support new IdP claim formats\n  (RFC 8693 multi-audience claims, extended Azure AD scope claims).\n  \n  ### Scope\n  Applied to cloud-1 and cloud-2. cloud-3 excluded -- EU compliance review\n  still in progress for new claim-parser semantics, will ship there after\n  2-week soak.\n  \n  ### Changes\n  - New claim-parser module (compat with legacy tokens via fallback)\n  - Adds observability: WARN-level log when legacy fallback is used\n  - No behavioral change for existing tenants; new format is opt-in\n  \n  ### Apply\n  Terraform apply clean on both clouds, no warnings. Verified with test\n  JWTs from all tenants. Some claim-parser fallback WARN logs expected\n  in the first 24h for tenants still using legacy scope formats -- benign.\n  \n  ### Rollback\n  `terraform apply` with previous tfvars; ~2min. Fallback is already the\n  legacy path, so live traffic would be unaffected during rollback.\n\nCHG-1899  OIDC vendor allowlist expansion (Acme legal tenant)  (author: m.chen)  2026-04-20T13:30:00Z  closed\n  Expand OIDC tenant allowlist to include `acme-legal-prod` service account\n  for read-only access to /v1/audit/export. Requested via CST-9821.\n  Applied only to cloud-1 (acme-legal infra lives there).\n  Does NOT touch sts-broker or signing-key config.\n\nCHG-1872  Okta tenant metadata refresh + sts-broker JWKs cache invalidation  (author: m.chen)  2026-04-18T09:10:00Z  closed\n  Refreshing Okta tenant metadata.xml in all sts-broker deployments\n  (quarterly hygiene per SOC2 runbook). Also invalidating the JWKs\n  cache so sts-broker re-fetches next request.\n  \n  All 3 clouds applied cleanly. Verified with a test JWT.",
+      "reward": 0.1,
+      "step_hits": [
+        "finds_chg_1891_ticket"
+      ],
+      "steps_remaining": 24,
+      "done": false
+    },
+    {
+      "step": 7,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#infra-terraform",
+          "query": "cloud-2",
+          "time_range": "T-2d..T+0",
+          "limit": 20
+        },
+        "reasoning": "Found it! CHG-1891 is the key rotation change from today. It mentions \"cloud-2: apply complete with warnings.\" Let me check the Slack channels for more context on what happened with cloud-2:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#infra-terraform, query='cloud-2', time_range=T-2d..T+0, limit=20):\nFound 3 matches; showing first 3.\n\n[#infra-terraform] 2026-04-21T16:02:00Z  @a.rodriguez\n  pre-registering: rolling policy-svc v2.14.3 to cloud-1 tomorrow ~10:00 UTC (CHG-1895). canary for 30min then full.\n\n[#infra-terraform] 2026-04-22T00:11:00Z  @m.chen\n  quick heads up: running a terraform plan against cloud-2 infra rn to check the audit-logger retention delta. will be ~10min.\n\n[#infra-terraform] 2026-04-22T00:14:00Z  @m.chen\n  hmm, getting a state-lock conflict on cloud-2. anyone else running against that state?",
+      "reward": 0.1,
+      "step_hits": [
+        "reads_state_lock_slack"
+      ],
+      "steps_remaining": 23,
+      "done": false
+    },
+    {
+      "step": 8,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#infra-terraform",
+          "query": "state-lock",
+          "time_range": "T-2d..T+0",
+          "limit": 20
+        },
+        "reasoning": "Interesting - there was a state-lock conflict on cloud-2 around the time of the key rotation. Let me search for more about this conflict:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#infra-terraform, query='state-lock', time_range=T-2d..T+0, limit=20):\nFound 1 matches; showing first 1.\n\n[#infra-terraform] 2026-04-22T00:14:00Z  @m.chen\n  hmm, getting a state-lock conflict on cloud-2. anyone else running against that state?",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 22,
+      "done": false
+    },
+    {
+      "step": 9,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#infra-terraform",
+          "query": "j.patel",
+          "time_range": "T-2d..T+0",
+          "limit": 20
+        },
+        "reasoning": "Let me search for j.patel's messages since they authored the key rotation change:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#infra-terraform, query='j.patel', time_range=T-2d..T+0, limit=20):\nFound 1 matches; showing first 1.\n\n[#infra-terraform] 2026-04-22T00:21:00Z  @m.chen  (in thread)\n  @j.patel FYI i had a stale lock when you were running -- hope my plan didn't mess you up. should be clean on my end now.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 21,
+      "done": false
+    },
+    {
+      "step": 10,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#infra-terraform",
+          "query": "rsa-2026",
+          "time_range": "T-2d..T+0",
+          "limit": 10
+        },
+        "reasoning": "This is suspicious - m.chen had a stale lock conflict with j.patel's key rotation change. Let me search for more details about what happened with the apply:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#infra-terraform, query='rsa-2026', time_range=T-2d..T+0, limit=10):\nFound 0 matches; showing first 0.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 20,
+      "done": false
+    },
+    {
+      "step": 11,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#deploys",
+          "query": "sts-broker",
+          "time_range": "T-2d..T+0",
+          "limit": 20
+        },
+        "reasoning": "Let me check the deploys channel:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#deploys, query='sts-broker', time_range=T-2d..T+0, limit=20):\nFound 0 matches; showing first 0.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 19,
+      "done": false
+    },
+    {
+      "step": 12,
+      "action": {
+        "tool_name": "slack_search",
+        "arguments": {
+          "channel": "#sre-oncall",
+          "query": "cloud-2",
+          "time_range": "T-2d..T+0",
+          "limit": 20
+        },
+        "reasoning": "Let me check the SRE oncall channel for any related discussion:"
+      },
+      "observation_type": "tool_result",
+      "content": "slack_search(channel=#sre-oncall, query='cloud-2', time_range=T-2d..T+0, limit=20):\nFound 2 matches; showing first 2.\n\n[#sre-oncall] 2026-04-21T14:20:00Z  @m.chen\n  fyi seeing some claim-parser fallback WARN logs on cloud-2 sts-broker today after CHG-1888 shipped. looks benign per release notes (legacy format fallback) but flagging in case anyone sees weirdness.\n\n[#sre-oncall] 2026-04-22T13:45:00Z  @oncall-bot\n  PagerDuty: auth_svc_5xx_rate_cloud2 SEV-2 fired. 5min burn rate 8.7%. INC-4472.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 18,
+      "done": false
+    },
+    {
+      "step": 13,
+      "action": {
+        "tool_name": "ticket_search",
+        "arguments": {
+          "ticket_type": "INC",
+          "query": "auth-svc cloud-2",
+          "time_range": "T-1d..T+0",
+          "limit": 10
+        },
+        "reasoning": "Let me check if there's an incident ticket with more details:"
+      },
+      "observation_type": "tool_result",
+      "content": "ticket_search(query='auth-svc cloud-2', ticket_type=INC, time_range=T-1d..T+0, limit=10):\nFound 1 matches; showing first 1.\n\nINC-4472  auth-svc 5xx rate elevated on cloud-2 (Acme affected)  (author: oncall-bot)  2026-04-22T14:02:00Z  open\n  Auto-created from monitoring alert auth_svc_5xx_rate_cloud2.\n  \n  - Threshold: 5% 5xx rate for 30min\n  - Current: 8.7%\n  - Affected tenant (from early reports): acme\n  \n  Acme CSM paged; CSS queue receiving tickets (\"can't log in from Okta\").\n  Oncall: pick this up.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 17,
+      "done": false
+    },
+    {
+      "step": 14,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-1",
+          "service": "sts-broker",
+          "query": "rsa-2026-q2",
+          "time_range": "T-60m..T+0",
+          "limit": 10
+        },
+        "reasoning": "Now let me verify if this issue is isolated to cloud-2 by checking if cloud-1 and cloud-3 have similar JWT validation failures:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-1, service=sts-broker, time_range=T-60m..T+0, query='rsa-2026-q2', limit=10):\n2 matching log lines; showing first 2.\n\n[2026-04-22T13:34:01.882Z] cloud-1 sts-broker     INFO  req=req-b1c2f101 trace=b1c2f1 | jwt validated kid=rsa-2026-q2 tenant=bolt\n[2026-04-22T14:01:03.229Z] cloud-1 sts-broker     INFO  req=req-b1c2f201 trace=b1c2f2 | jwt validated kid=rsa-2026-q2 tenant=bolt",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 16,
+      "done": false
+    },
+    {
+      "step": 15,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-3",
+          "service": "sts-broker",
+          "query": "rsa-2026-q2",
+          "time_range": "T-60m..T+0",
+          "limit": 10
+        },
+        "reasoning": "Cloud-1 is successfully validating JWTs with the new key `rsa-2026-q2`. Let me also check cloud-3:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-3, service=sts-broker, time_range=T-60m..T+0, query='rsa-2026-q2', limit=10):\n1 matching log lines; showing first 1.\n\n[2026-04-22T14:00:04.339Z] cloud-3 sts-broker     INFO  req=req-c3d4e801 trace=c3d4e8 | jwt validated kid=rsa-2026-q2 tenant=vertex",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 15,
+      "done": false
+    },
+    {
+      "step": 16,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "sts.jwt_validation_failures",
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "time_range": "T-120m..T+0",
+          "step": "5m"
+        },
+        "reasoning": "Cloud-1 and cloud-3 are both successfully validating tokens with the new key. The issue is isolated to cloud-2. Let me check the metric for JWT validation failures to confirm the pattern:"
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=sts.jwt_validation_failures, cloud=cloud-2, service=sts-broker, time_range=T-120m..T+0, step=5m):\n4 samples; min=451, max=903, mean=690.0, last=903.\n\nShowing 4 samples:\n  2026-04-22T12:30:00Z   451\n  2026-04-22T13:00:00Z   624\n  2026-04-22T13:30:00Z   782\n  2026-04-22T14:00:00Z   903",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 14,
+      "done": false
+    },
+    {
+      "step": 17,
+      "action": {
+        "tool_name": "metric_query",
+        "arguments": {
+          "metric_name": "sts.jwt_validation_failures",
+          "cloud": "cloud-1",
+          "service": "sts-broker",
+          "time_range": "T-120m..T+0",
+          "step": "5m"
+        },
+        "reasoning": "JWT validation failures are increasing. Let me compare with cloud-1:"
+      },
+      "observation_type": "tool_result",
+      "content": "metric_query(metric=sts.jwt_validation_failures, cloud=cloud-1, service=sts-broker, time_range=T-120m..T+0, step=5m):\n1 samples; min=0, max=0, mean=0.0, last=0.\n\nShowing 1 samples:\n  2026-04-22T14:00:00Z   0",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 13,
+      "done": false
+    },
+    {
+      "step": 18,
+      "action": {
+        "tool_name": "kb_search",
+        "arguments": {
+          "query": "sts-broker JWKS key rotation",
+          "limit": 3
+        },
+        "reasoning": "Zero failures on cloud-1. Now let me check the knowledge base for the runbook mentioned in the alert:"
+      },
+      "observation_type": "tool_result",
+      "content": "kb_search(query='sts-broker JWKS key rotation', limit=3):\nFound 3 matches. Showing top 3 with full content.\n\n============================================================\n[runbooks/oidc-key-rotation] (kb-42)  |  last edited 2026-01-15\n============================================================\n# OIDC Signing Key Rotation Runbook\n\nQuarterly hygiene for the OIDC signing key used by `sts-broker` to validate tenant JWTs.\n\n## When to run\n\n- Quarterly (Jan / Apr / Jul / Oct).\n- After any suspected signing-key compromise.\n- When a tenant reports unexpected token validation failures tied to `kid=` drift.\n\n## Preconditions\n\n- You are on the SRE oncall rotation.\n- No other Terraform runs scheduled against `module.cloud_*.sts_broker_keys` in the next 30 min. Coordinate in `#infra-terraform`.\n- `#sre-oncall` pinged with a heads-up.\n\n## Procedure\n\n1. **Generate** new RSA-2048 keypair in Vault: `vault write pki/keys/sts-broker type=rsa bits=2048`.\n2. **Update tfvars** in `platform-infra/clouds/*/sts_broker.tfvars` with the new `signing_kid`.\n3. **Apply per-cloud sequentially** (NOT in parallel): `cloud-1`, then `cloud-2`, then `cloud-3`. 10-min wait between each.\n4. **Rotate Okta tenant signing key** via Okta admin console; update to the new private key.\n5. **Verify** each cloud validates a fresh JWT under the new `kid` via `scripts/verify_sts_kid.sh <cloud>`.\n\n## Known failure modes\n\n### State-lock contention (HIGH IMPACT)\n\nIf anyone else is running a Terraform plan or apply against the same state bucket at the same time as your apply, your apply may **silently succeed with warnings** while actually not writing the new key config.\n\nSymptoms:\n- Terraform output shows `apply complete with warnings` (not `apply complete`).\n- `warnings:` block in `terraform.log` references `state lock held by <other-user>`.\n- Target cloud's `sts-broker` never reloads its JWKs config.\n- Tokens signed with new private key fail validation on that cloud with `signature verification failed: kid=<old-kid> unknown`.\n\n**How to confirm the silent failure:** run `terraform output -json | jq .sts_broker_key_id` on the affected cloud. If it shows the old kid, the apply silently no-op'd.\n\n**How to fix:** re-apply Terraform targeting only the affected cloud's sts_broker_keys module:\n\n```\nterraform apply -target=module.cloud_N.sts_broker_keys\n```\n\nDo NOT roll back the global rotation -- the other clouds are healthy on the new key. A global rollback breaks them.\n\n### Okta tenant key drift\n\nIf Okta signs with a new kid but clouds still serve old kid, all tenant logins will fail. Mitigation: invalidate the JWKs cache (`sts-broker admin flush-jwks`) and re-apply config.\n\n### Cache warm-up after rotation\n\n`sts-broker` caches JWKs for 5 min by default. First few requests post-rotation may fail with `kid_mismatch` -- wait 5 min or manually flush.\n\n## Post-incident\n\n- Update Okta admin notes with the new kid.\n- File a change ticket closure (CHG-xxxx).\n- Verify `sts.jwt_validation_failures` metric is flat on all 3 clouds for 60 min after rotation.\n\n## Related\n\n- [Terraform Best Practices](kb://terraform/best-practices)\n- [OIDC Federation Overview](kb://architecture/oidc-federation)\n- [Auth-svc 5xx Alert Runbook](kb://runbooks/auth-svc-5xx)\n\n============================================================\n[architecture/oidc-federation] (kb-24)  |  last edited 2025-11-22\n============================================================\n# OIDC Federation Overview\n\nHow NimbusGuard federates with customer identity providers (Okta, Azure AD, Ping) over OIDC.\n\n## The model in one diagram\n\n```\nCustomer IdP (Okta / Azure AD / Ping)\n    \u2502\n    \u2502  1. User authenticates; IdP issues JWT signed with IdP's private key.\n    \u2502\n    \u25bc\nNimbusGuard api-gateway\n    \u2502\n    \u2502  2. Forwards JWT to auth-svc.\n    \u2502\n    \u25bc\nauth-svc\n    \u2502\n    \u2502  3. Calls sts-broker to validate the JWT.\n    \u2502\n    \u25bc\nsts-broker\n    \u2502\n    \u2502  4. Verifies signature using cached JWKs (IdP public keys).\n    \u2502  5. Returns validation result.\n    \u2502\n    \u25bc\nauth-svc (returns session token)\n```\n\n## Key validation flow details\n\nWhen a JWT arrives at `sts-broker`, the following happens:\n\n1. Parse the JWT header. Extract the `kid` claim.\n2. Look up the `kid` in the local JWKs cache (5-min TTL).\n3. If cache miss, fetch the JWKs set from the IdP and re-populate.\n4. Verify signature using the matching public key.\n5. Validate claims: `iss`, `aud`, `exp`, `nbf`, `iat`.\n6. Return decoded claims or a validation failure.\n\n## Common failure modes\n\n- **`kid` not in JWKs set**: signature check fails immediately. Logs show\n  `signature verification failed: kid=<kid> unknown`. Usually means IdP\n  rotated its signing key but our cache is stale (or our config doesn't\n  know the new kid).\n- **Clock skew**: `exp` or `nbf` validation fails if our clock is off by\n  more than 60s from IdP. Rare, but happens during clock-service outages.\n- **Revoked token**: IdP revokes a session; our validation still succeeds\n  until the token expires. We depend on IdP-side revocation; NimbusGuard\n  does not implement its own JWT revocation store.\n\n## Key rotation\n\nBoth our signing keys (for our own-issued tokens) and IdP-side signing keys\nrotate. See [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\nfor the signing-key rotation procedure on our side.\n\n## Tenant isolation\n\nEach tenant's IdP config lives in `sts-broker`'s per-tenant config map:\n`sts-broker-config/tenants/<tenant_id>.yaml`. Tenant-specific claims\n(issuer URL, audience, trusted kids) are pinned here.\n\n## Related\n\n- [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\n- [Auth-svc 5xx Runbook](kb://runbooks/auth-svc-5xx)\n\n============================================================\n[runbooks/auth-svc-5xx] (kb-38)  |  last edited 2026-02-10\n============================================================\n# auth-svc 5xx rate alert -- Runbook\n\nFires when `auth-svc` HTTP 5xx rate exceeds **5%** for 30 minutes on any cloud.\n\n## First 5 minutes\n\n1. Confirm which cloud the alert scopes to (label: `cloud=cloud-N`).\n2. Open the cloud-scoped Grafana dashboard: `grafana://auth-svc-health`.\n3. Check upstream dependencies: `sts-broker`, `policy-svc`, `api-gateway`.\n\n## Usual suspects (in order of frequency)\n\n### 1. sts-broker validation failures\n\nIf `auth-svc` returns 5xx and traces show failures at the `sts-broker` hop,\nit's token validation. Check:\n\n- JWKs cache: `sts-broker admin jwks-info`.\n- Recent changes to sts-broker config (Terraform).\n- Okta tenant signing key status.\n\n### 2. policy-svc timeouts\n\n`auth-svc` calls `policy-svc` after validation. If policy-svc is slow,\nauth-svc times out upstream -> 504. Check policy-svc metrics.\n\n### 3. Downstream DB or cache saturation\n\nCheck `sts-broker` Redis connection pool exhaustion. Known flaky dependency;\ncan contribute ~0.5-1% baseline 5xx even when healthy.\n\n## Scoping discipline\n\nAlways scope investigations to the alerting cloud first. Other clouds with the\nsame service may look healthy and distract. Do NOT conclude \"it's a global\nproblem\" without metric data from the other clouds.\n\n## When sts-broker is the prime suspect\n\n- Check `sts.jwt_validation_failures` -- step changes correlate with\n  config changes.\n- Cross-reference recent Terraform applies via `ticket_search type=CHG`.\n- Check `#infra-terraform` for any state-lock chatter around the apply window.\n\n## Escalation\n\nAfter 30 min of active investigation without a root cause, page the\non-call platform engineer. SEV-2+ customer-impacting should not wait past\n45 min total time-to-engagement.\n\n## Related\n\n- [OIDC Key Rotation Runbook](kb://runbooks/oidc-key-rotation)\n- [Terraform Best Practices](kb://terraform/best-practices)\n- [Incident Response Playbook](kb://runbooks/incident-response)",
+      "reward": 0.1,
+      "step_hits": [
+        "finds_correct_runbook"
+      ],
+      "steps_remaining": 12,
+      "done": false
+    },
+    {
+      "step": 19,
+      "action": {
+        "tool_name": "trace_get",
+        "arguments": {
+          "trace_id": "a1b309"
+        },
+        "reasoning": "This is extremely helpful! The runbook explicitly describes the exact failure mode we're seeing:\n\n> **State-lock contention (HIGH IMPACT)**: If anyone else is running a Terraform plan or apply against the same state bucket at the same time as your apply, your apply may **silently succeed with warnings** while actually not writing the new key config.\n\nThis matches perfectly with:\n1. CHG-1891 notes \"cloud-2: apply complete with warnings\"\n2. m.chen's Slack message about state-lock conflict at 00:14Z during the key rotation\n3. m.chen's follow-up to j.patel about the stale lock\n\nLet me get a trace to confirm the full request flow:"
+      },
+      "observation_type": "error",
+      "content": "ERROR calling trace_get: Unknown trace_id 'a1b309'. No such trace in our store.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 11,
+      "done": false
+    },
+    {
+      "step": 20,
+      "action": {
+        "tool_name": "trace_get",
+        "arguments": {
+          "trace_id": "a1b2f2"
+        },
+        "reasoning": null
+      },
+      "observation_type": "error",
+      "content": "ERROR calling trace_get: Unknown trace_id 'a1b2f2'. No such trace in our store.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 10,
+      "done": false
+    },
+    {
+      "step": 21,
+      "action": {
+        "tool_name": "trace_get",
+        "arguments": {
+          "trace_id": "a1b30902"
+        },
+        "reasoning": "Let me try a longer trace ID from the logs:"
+      },
+      "observation_type": "error",
+      "content": "ERROR calling trace_get: Unknown trace_id 'a1b30902'. No such trace in our store.",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 9,
+      "done": false
+    },
+    {
+      "step": 22,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "query": "rsa-2026-q2 unknown",
+          "time_range": "T-24h..T+0",
+          "limit": 10
+        },
+        "reasoning": "The trace isn't available, but I have enough evidence. Let me verify the exact timing - the errors started appearing around 13:05 UTC, which is after the key rotation change was applied. Let me check when the errors first started:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=sts-broker, time_range=T-24h..T+0, query='rsa-2026-q2 unknown', limit=10):\n37 matching log lines; showing first 10.\n\n[2026-04-22T00:17:22.402Z] cloud-2 sts-broker     ERROR req=req-a1b2c302 trace=a1b2c3 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T00:22:41.667Z] cloud-2 sts-broker     ERROR req=req-a1b2c401 trace=a1b2c4 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T01:14:19.002Z] cloud-2 sts-broker     ERROR req=req-a1b2c501 trace=a1b2c5 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T02:03:44.891Z] cloud-2 sts-broker     ERROR req=req-a1b2c601 trace=a1b2c6 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T03:12:55.066Z] cloud-2 sts-broker     ERROR req=req-a1b2d102 trace=a1b2d1 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T05:30:04.552Z] cloud-2 sts-broker     ERROR req=req-a1b2d201 trace=a1b2d2 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T07:15:22.098Z] cloud-2 sts-broker     ERROR req=req-a1b2d302 trace=a1b2d3 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T08:22:03.445Z] cloud-2 sts-broker     ERROR req=req-a1b2d401 trace=a1b2d4 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T09:15:00.001Z] cloud-2 sts-broker     ERROR req=req-a1b2d501 trace=a1b2d5 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n[2026-04-22T09:22:11.308Z] cloud-2 sts-broker     ERROR req=req-a1b2d601 trace=a1b2d6 | JWT signature verification failed: kid=rsa-2026-q2 unknown tenant=acme\n\n(truncated; 37 total, 10 shown -- raise `limit` to see more)",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 8,
+      "done": false
+    },
+    {
+      "step": 23,
+      "action": {
+        "tool_name": "logs_search",
+        "arguments": {
+          "cloud": "cloud-2",
+          "service": "sts-broker",
+          "query": "claim-parser",
+          "time_range": "T-24h..T+0",
+          "limit": 10
+        },
+        "reasoning": "The errors started at 00:17:22Z on 2026-04-22 - just minutes after:\n- The key rotation change CHG-1891 was applied around 00:05Z\n- m.chen's state-lock conflict at 00:14Z\n\nThis confirms the root cause. The failures have been happening since the key rotation, but only reached the 5% threshold after enough traffic accumulated.\n\nLet me also rule out the alternative hypothesis - CHG-1888 (JWT claim-parser upgrade) which was also applied to cloud-2:"
+      },
+      "observation_type": "tool_result",
+      "content": "logs_search(cloud=cloud-2, service=sts-broker, time_range=T-24h..T+0, query='claim-parser', limit=10):\n2 matching log lines; showing first 2.\n\n[2026-04-21T16:22:11.112Z] cloud-2 sts-broker     WARN  req=req-d99a0401 trace=d99a04 | claim_parser: fallback to legacy format for tenant=acme scope_count=4\n[2026-04-22T08:30:02.110Z] cloud-2 sts-broker     WARN  req=req-d99a0601 trace=d99a06 | claim_parser: fallback to legacy format for tenant=acme scope_count=3",
+      "reward": 0.0,
+      "step_hits": [],
+      "steps_remaining": 7,
+      "done": false
+    },
+    {
+      "step": 24,
+      "action": {
+        "tool_name": "submit_answer",
+        "arguments": {
+          "root_cause": "The root cause is a failed Terraform apply during the quarterly OIDC signing key rotation (CHG-1891) on cloud-2. At 2026-04-22T00:05Z, j.patel ran the key rotation to deploy the new signing key `kid=rsa-2026-q2` across all three clouds. However, at 00:14Z, m.chen was simultaneously running a Terraform plan against cloud-2's state bucket for an unrelated audit-logger check, causing a state-lock conflict. Per the runbook (kb://runbooks/oidc-key-rotation), this known failure mode causes Terraform to report \"apply complete with warnings\" while silently failing to write the new key configuration to sts-broker.\n\nAs a result, cloud-2's sts-broker never received the new public key `rsa-2026-q2`. When Okta started signing tokens with the new private key (step 3 of the rotation), cloud-2 couldn't validate them, returning \"JWT signature verification failed: kid=rsa-2026-q2 unknown\" errors. These failures have been occurring since 00:17Z but only crossed the 5% threshold at 14:02Z as traffic accumulated.\n\n**Alternative hypothesis ruled out:** CHG-1888 (JWT claim-parser upgrade) was also applied to cloud-2 on 2026-04-21. However, this is not the cause because: (1) the claim-parser logs show only benign WARN-level fallback messages, not errors; (2) the error messages explicitly cite \"kid=rsa-2026-q2 unknown\" which is a key lookup failure, not a claim parsing issue; (3) cloud-1 received the same claim-parser upgrade and is validating tokens with `rsa-2026-q2` successfully (confirmed via logs showing \"jwt validated kid=rsa-2026-q2\").",
+          "fix": "Re-apply the Terraform configuration targeting only cloud-2's sts_broker_keys module to deploy the new public key:\n\n```bash\ncd platform-infra/clouds/cloud-2\nterraform apply -target=module.cloud_2.sts_broker_keys\n```\n\nBefore running, verify no other Terraform operations are in progress against cloud-2's state bucket (check `#infra-terraform` and run `terraform state list` to confirm lock is free).\n\nAfter the apply completes (should show \"apply complete\" without warnings), verify the fix by:\n1. Run `terraform output -json | jq .sts_broker_key_id` to confirm it shows `rsa-2026-q2`\n2. Flush the JWKs cache: `sts-broker admin flush-jwks`\n3. Monitor `sts.jwt_validation_failures` metric on cloud-2 - should drop to near-zero within 5 minutes\n4. Confirm acme tenant can authenticate successfully\n\nDo NOT perform a global rollback of the key rotation - cloud-1 and cloud-3 are healthy on the new key. Rolling back globally would break authentication for those clouds."
+        },
+        "reasoning": "These are just WARN-level logs about fallback to legacy format - expected benign behavior per CHG-1888 notes. These are not causing failures.\n\nI have sufficient evidence to submit my answer."
+      },
+      "observation_type": "evaluation",
+      "content": "Evaluation:\n  [CORE ] identify_chg_1891                weight= 0.15  score=1.00  weighted=0.150\n          Answer explicitly names CHG-1891 and j.patel as the author of the key rotation, both elements clearly present.\n  [CORE ] identify_cloud2_scope            weight= 0.15  score=1.00  weighted=0.150\n          Answer correctly scopes the failure to cloud-2 only and explicitly states cloud-1 and cloud-3 are healthy on the new key, backed by metric and log queries.\n  [CORE ] identify_state_lock_mechanism    weight= 0.20  score=1.00  weighted=0.200\n          Answer clearly explains the concurrent Terraform state-lock conflict mechanism, names m.chen and the #infra-terraform channel, and notes the silent 'apply complete with warnings' failure mode.\n  [CORE ] identify_stale_key_symptom       weight= 0.15  score=1.00  weighted=0.150\n          Answer explicitly connects kid=rsa-2026-q2 unknown errors on cloud-2 to the stale public key not being written, with log evidence from step 22.\n  [CORE ] proposes_targeted_reapply        weight= 0.10  score=1.00  weighted=0.100\n          Answer proposes a specific targeted terraform apply with exact command `-target=module.cloud_2.sts_broker_keys` for cloud-2 only.\n  [CORE ] avoids_global_rollback           weight= 0.05  score=1.00  weighted=0.050\n          Answer explicitly warns against a global rollback and explains why it would break cloud-1 and cloud-3.\n  [CORE ] explicit_elimination             weight= 0.10  score=1.00  weighted=0.100\n          Answer explicitly eliminates CHG-1888 with specific evidence: (1) only benign WARN logs, (2) error message content mismatch, and (3) cloud-1 received the same upgrade but is healthy \u2014 the strongest possible disambiguating argument.\n  [CORE ] evidence_supported_claims        weight= 0.10  score=0.90  weighted=0.090\n          Nearly all major claims are supported by trajectory tool calls: CHG-1891/j.patel (step 6), m.chen state-lock (steps 8-9), cloud-1/cloud-3 healthy (steps 14-15,17), kid=rsa-2026-q2 unknown (step 22), claim-parser benign (step 23). Minor unsupported detail: the specific characterization of m.chen's run as an 'audit-logger check' isn't clearly in the trajectory.\n  [BONUS] cites_specific_evidence          weight= 0.05  score=1.00  weighted=0.050\n          Answer cites CHG-1891, CHG-1888, kid=rsa-2026-q2, specific timestamps (00:05Z, 00:14Z, 00:17Z, 14:02Z), j.patel, m.chen, kb://runbooks/oidc-key-rotation, INC-4472, and #infra-terraform \u2014 well over 3 specific pieces of evidence.\n\nTerminal reward: 1.000 / 1.000\nStep reward accumulated during episode: 0.500\nAchievements earned: ['correct_first_tool', 'finds_chg_1891_ticket', 'finds_correct_runbook', 'finds_signature_error_log', 'reads_state_lock_slack']",
+      "reward": 1.0,
+      "step_hits": [],
+      "steps_remaining": 6,
+      "done": true
+    }
+  ]
+}
