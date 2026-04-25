@@ -12,6 +12,12 @@
 {"timestamp":"2026-04-21T19:00:03.110Z","cloud":"cloud-2","service":"audit-logger","level":"INFO","message":"flushed 14523 events to s3://nimbus-audit-cloud2/2026/04/21/18"}
 {"timestamp":"2026-04-21T20:18:41.774Z","cloud":"cloud-3","service":"auth-svc","level":"INFO","message":"authenticated tenant=vertex user=l.chen session_ttl=3600","trace_id":"e33c77","request_id":"req-e33c7701"}
 {"timestamp":"2026-04-21T21:03:22.510Z","cloud":"cloud-1","service":"sts-broker","level":"INFO","message":"jwt validated kid=rsa-2025-q4 tenant=bolt","trace_id":"e11a88","request_id":"req-e11a8801"}
+{"timestamp":"2026-04-21T11:15:03.441Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=acme scope_count=3","trace_id":"d99a01","request_id":"req-d99a0101"}
+{"timestamp":"2026-04-21T13:42:19.002Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=bolt scope_count=2","trace_id":"d99a02","request_id":"req-d99a0201"}
+{"timestamp":"2026-04-21T14:08:55.889Z","cloud":"cloud-1","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=bolt scope_count=2","trace_id":"d99a03","request_id":"req-d99a0301"}
+{"timestamp":"2026-04-21T16:22:11.112Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=acme scope_count=4","trace_id":"d99a04","request_id":"req-d99a0401"}
+{"timestamp":"2026-04-22T03:01:44.445Z","cloud":"cloud-1","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=bolt scope_count=2","trace_id":"d99a05","request_id":"req-d99a0501"}
+{"timestamp":"2026-04-22T08:30:02.110Z","cloud":"cloud-2","service":"sts-broker","level":"WARN","message":"claim_parser: fallback to legacy format for tenant=acme scope_count=3","trace_id":"d99a06","request_id":"req-d99a0601"}
 {"timestamp":"2026-04-21T22:15:06.001Z","cloud":"cloud-2","service":"policy-svc","level":"WARN","message":"policy_decision latency=201ms (p99 threshold=150ms)","trace_id":"e22b99","request_id":"req-e22b9901"}
 {"timestamp":"2026-04-21T23:45:11.203Z","cloud":"cloud-3","service":"ml-scorer","level":"INFO","message":"batch_scoring complete jobs=400 duration=12m03s"}
 {"timestamp":"2026-04-22T00:02:14.440Z","cloud":"cloud-2","service":"auth-svc","level":"INFO","message":"authenticated tenant=acme user=night.shift session_ttl=3600","trace_id":"f10001","request_id":"req-f1000101"}

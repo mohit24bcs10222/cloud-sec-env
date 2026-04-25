@@ -14,9 +14,21 @@
 # ============================================================
 
 - channel: "#sre-oncall"
+  timestamp: "2026-04-21T14:20:00Z"
+  author: m.chen
+  text: "fyi seeing some claim-parser fallback WARN logs on cloud-2 sts-broker today after CHG-1888 shipped. looks benign per release notes (legacy format fallback) but flagging in case anyone sees weirdness."
+  thread_ts: null
+
+- channel: "#sre-oncall"
+  timestamp: "2026-04-21T14:24:00Z"
+  author: j.patel
+  text: "yep expected, release notes call that out. will clean up once tenants migrate scope format. ignore for now."
+  thread_ts: "2026-04-21T14:20:00Z"
+
+- channel: "#sre-oncall"
   timestamp: "2026-04-22T00:08:00Z"
   author: j.patel
-  text: "kicking off CHG-1891 OIDC key rotation now across all 3 clouds. ping me if anything looks weird."
+  text: "kicking off CHG-1891 rotation now across all 3 clouds. ping me if anything looks weird."
   thread_ts: null
 
 - channel: "#sre-oncall"

@@ -249,18 +249,20 @@ class RewardScorer:
 
     # --- Terminal scoring ---
 
-    def score_terminal(self, root_cause: str, fix: str) -> tuple[float, dict[str, dict[str, Any]]]:
+    def score_terminal(
+        self,
+        root_cause: str,
+        fix: str,
+        trajectory: "Optional[list[dict]]" = None,
+    ) -> tuple[float, dict[str, dict[str, Any]]]:
         """Score the final submit_answer.
 
-        If an LLM judge was provided at construction, use it (continuous 0-1
-        per dimension + bonus dimensions). Otherwise fall back to the
-        deterministic keyword rubric.
+        If an LLM judge was provided at construction, use it (trajectory-aware
+        continuous 0-1 per dimension + bonus dimensions). Otherwise fall back
+        to the deterministic keyword rubric.
         """
         if self.judge is not None:
-            result = self.judge.grade(root_cause, fix)
-            # Normalize the judge's breakdown to match the keyword rubric's shape
-            # so downstream consumers (env summary, trajectory log) don't care
-            # which scorer produced it.
+            result = self.judge.grade(root_cause, fix, trajectory=trajectory)
             breakdown = dict(result.get("breakdown", {}))
             if result.get("judge_error"):
                 breakdown["_judge_error"] = {"weight": 0.0, "hit": False, "reason": result["judge_error"]}

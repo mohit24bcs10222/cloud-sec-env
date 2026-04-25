@@ -88,6 +88,40 @@
 
     Handing to ML infra team. Low priority.
 
+- id: CHG-1888
+  type: CHG
+  title: "sts-broker JWT claim-parser upgrade"
+  author: j.patel
+  created: "2026-04-21T09:40:00Z"
+  applied: "2026-04-21T10:00:00Z"
+  closed: "2026-04-21T10:15:00Z"
+  status: closed
+  affected_services: [sts-broker]
+  affected_clouds: [cloud-1, cloud-2]
+  tags: [sts-broker, jwt, upgrade, claim-parser]
+  body: |
+    Upgrade sts-broker's JWT claim-parser to support new IdP claim formats
+    (RFC 8693 multi-audience claims, extended Azure AD scope claims).
+
+    ### Scope
+    Applied to cloud-1 and cloud-2. cloud-3 excluded -- EU compliance review
+    still in progress for new claim-parser semantics, will ship there after
+    2-week soak.
+
+    ### Changes
+    - New claim-parser module (compat with legacy tokens via fallback)
+    - Adds observability: WARN-level log when legacy fallback is used
+    - No behavioral change for existing tenants; new format is opt-in
+
+    ### Apply
+    Terraform apply clean on both clouds, no warnings. Verified with test
+    JWTs from all tenants. Some claim-parser fallback WARN logs expected
+    in the first 24h for tenants still using legacy scope formats -- benign.
+
+    ### Rollback
+    `terraform apply` with previous tfvars; ~2min. Fallback is already the
+    legacy path, so live traffic would be unaffected during rollback.
+
 - id: CHG-1895
   type: CHG
   title: "Deploy policy-svc v2.14.3 to cloud-1"

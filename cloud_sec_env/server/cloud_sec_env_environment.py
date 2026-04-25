@@ -147,7 +147,11 @@ class CloudSecEnvironment(Environment):
         root_cause = args.get("root_cause", "")
         fix = args.get("fix", "")
 
-        terminal_reward, reward_breakdown = self._scorer.score_terminal(root_cause, fix)
+        # Pass the trajectory so far (not including this submit step) to the
+        # scorer -- the LLM judge uses it to verify claims against evidence.
+        terminal_reward, reward_breakdown = self._scorer.score_terminal(
+            root_cause, fix, trajectory=list(self._trajectory)
+        )
         scorer_summary = self._scorer.summary()
 
         summary_lines = ["Evaluation:"]

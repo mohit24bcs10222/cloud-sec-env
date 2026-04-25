@@ -107,6 +107,23 @@ red_herrings:
     distractor_evidence:
       - "Agent must cross-check with metrics/logs, not trust the confident human"
 
+  - id: chg_1888_claim_parser
+    description: |
+      CHG-1888 is the TEMPTING WRONG hypothesis. Same author (j.patel), same
+      service (sts-broker), applied the day before. It produces benign WARN
+      logs on cloud-2 that look superficially related. Agent might blame it.
+      Disambiguating test: CHG-1888 shipped to cloud-1 AND cloud-2. If it
+      were the cause, cloud-1 would show matching failures. cloud-1 metrics
+      are flat -> CHG-1888 CANNOT be the cause. Only CHG-1891 produces
+      cloud-2-asymmetric behavior (state-lock silent fail on cloud-2 only).
+    distractor_evidence:
+      - "CHG-1888 ticket in ticket_search with same author, service, recent timing"
+      - "claim_parser fallback WARN logs on cloud-2 sts-broker"
+      - "Slack mention of claim-parser warnings on cloud-2 after CHG-1888"
+    disambiguation_test:
+      - "CHG-1888 shipped to cloud-1 too; cloud-1 is healthy; therefore CHG-1888 is not the cause"
+      - "Metric sts.jwt_validation_failures is flat on cloud-1 -- inconsistent with a CHG-1888 cause"
+
 # --- Reward scoring rubric ---
 # Terminal reward computed from submit_answer. Max = 1.0. Step-level rewards accumulate separately.
 reward_rubric:
