@@ -25,16 +25,18 @@ CELLS: list[tuple[str, str]] = [
         "markdown",
         f"""# {NOTEBOOK_TITLE}
 
-This notebook fine-tunes **Qwen2.5-7B-Instruct** on Opus-generated incident-investigation trajectories from our [Cloud Sec Env](https://github.com/<TODO-repo>) using [Unsloth](https://github.com/unslothai/unsloth) and [TRL](https://github.com/huggingface/trl).
+This notebook fine-tunes **Qwen2.5-7B-Instruct** on Opus-generated incident-investigation trajectories from our **Cloud Sec Env** using [Unsloth](https://github.com/unslothai/unsloth) and [TRL](https://github.com/huggingface/trl).
+
+**Training data:** [Krishna3451112/cloud-sec-env-sft](https://huggingface.co/datasets/Krishna3451112/cloud-sec-env-sft) — 55 high-quality trajectories filtered from Opus-4.5 rollouts (mean terminal reward 0.97 under our deterministic keyword rubric).
 
 **Setup:** Runtime → Change runtime type → **T4 GPU** (free tier works).
 
-**What this does in 5 cells:**
+**Pipeline:**
 1. Install dependencies
 2. Load Qwen2.5-7B + LoRA adapter via Unsloth
-3. Load and format our SFT dataset (Opus trajectories)
+3. Load and format our SFT dataset
 4. Train with TRL's `SFTTrainer`
-5. Demo inference + save adapter
+5. Save adapter + demo inference
 """,
     ),
     (
@@ -96,22 +98,18 @@ Our SFT data is one JSONL line per trajectory, each with a `messages` field that
     (
         "code",
         """from datasets import load_dataset
-from pathlib import Path
 
-# Option A -- load from a HF dataset (fill in once published):
-#   dataset = load_dataset("<your-username>/cloud-sec-env-sft", split="train")
-#
-# Option B -- upload `cloud_sec_train.jsonl` to /content via the file pane,
-# or pull from a raw URL:
-DATA_URL = "https://raw.githubusercontent.com/<TODO-user>/<TODO-repo>/main/data/sft/cloud_sec_train.jsonl"
-DATA_LOCAL = Path("/content/cloud_sec_train.jsonl")
+# Public HF dataset of Opus-generated trajectories from our Cloud Sec Env.
+# 55 high-quality investigation trajectories, mean terminal reward 0.968.
+DATASET_REPO = "Krishna3451112/cloud-sec-env-sft"
+dataset = load_dataset(DATASET_REPO, data_files="train.jsonl", split="train")
 
-if not DATA_LOCAL.exists():
-    !wget -q -O /content/cloud_sec_train.jsonl $DATA_URL || echo "(falling back to local upload)"
+print(f"Loaded {len(dataset)} training trajectories from {DATASET_REPO}.")
+print("Sample first message roles:", [m["role"] for m in dataset[0]["messages"][:6]])
 
-dataset = load_dataset("json", data_files=str(DATA_LOCAL), split="train")
-print(f"Loaded {len(dataset)} training trajectories.")
-print("Sample first message roles:", [m["role"] for m in dataset[0]["messages"][:6]])""",
+# Cache the system prompt for later inference demo (the .map() call below
+# drops the "messages" column).
+SYSTEM_PROMPT = dataset[0]["messages"][0]["content"]""",
     ),
     (
         "code",
@@ -212,19 +210,14 @@ CONDITION  HTTP 5xx rate on auth-svc in cloud-2 > 5% for 30min
 CURRENT    8.7%
 RUNBOOK    kb://runbooks/auth-svc-5xx'''
 
-# Pull the same system prompt our env adapter uses.
-import urllib.request, json
-SYSTEM_PROMPT_URL = "https://raw.githubusercontent.com/<TODO-user>/<TODO-repo>/main/cloud_sec_env/agent/tool_specs.py"
-# (For the demo we just inline a short stub; the real fine-tune already saw the full prompt)
-SHORT_SYSTEM = "You are an on-call SRE. Investigate the alert using the available tools and respond with a JSON action object."
-
 prompt_messages = [
-    {"role": "system", "content": SHORT_SYSTEM},
+    {"role": "system", "content": SYSTEM_PROMPT},
     {"role": "user", "content": ALERT},
 ]
 inputs = tokenizer.apply_chat_template(prompt_messages, return_tensors="pt", add_generation_prompt=True).to("cuda")
 outputs = model.generate(inputs, max_new_tokens=400, do_sample=True, temperature=0.7)
-print(tokenizer.batch_decode(outputs, skip_special_tokens=False)[0])""",
+generated = tokenizer.batch_decode(outputs, skip_special_tokens=False)[0]
+print(generated)""",
     ),
     (
         "markdown",
