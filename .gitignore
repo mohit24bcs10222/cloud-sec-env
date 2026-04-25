@@ -34,3 +34,8 @@ cloud_sec_env/outputs/
 # Large data (if we ever generate it)
 *.parquet
 data/**/*.parquet
+
+# Trained adapter (160MB safetensors -- ship via HF Hub, not Git)
+colab/cloud_sec_sft_adapter/
+*.safetensors
+*.zip
