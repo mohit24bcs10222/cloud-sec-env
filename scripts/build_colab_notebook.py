@@ -221,11 +221,194 @@ print(generated)""",
     ),
     (
         "markdown",
-        """## Next steps after this notebook
+        """## 6. Evaluate the fine-tuned model against the live env
 
-- Connect to the running env (HF Space) and roll out a few episodes with this adapter loaded
-- Compare to the pre-fine-tune baseline (~0.05 mean) and Opus (~0.96 mean) to plot the curve
-- (Optional) Push the adapter to HF Hub: `model.push_to_hub("<your-username>/cloud-sec-env-qwen-sft")`""",
+Roll out the trained model against our deployed HF Space env and measure
+terminal reward. Compares against the pre-trained Qwen baseline (~0.05 mean).
+""",
+    ),
+    (
+        "code",
+        """import json, re, requests, time
+from collections import Counter
+
+# Live env on HF Spaces. Built from the same code as the local env.
+ENV_BASE = "https://Krishna3451112-cloud-sec-env-space.hf.space"
+
+# Sanity ping
+try:
+    r = requests.post(f"{ENV_BASE}/reset", json={}, timeout=30)
+    obs = r.json()["observation"]
+    print(f"Env reachable. Initial observation_type: {obs['observation_type']}, steps_remaining: {obs['steps_remaining']}")
+except Exception as e:
+    print(f"Env unreachable: {e}")
+    print("If the Space is still building, wait a minute and retry.")
+    raise""",
+    ),
+    (
+        "code",
+        '''SYSTEM_PROMPT_FOR_INFERENCE = SYSTEM_PROMPT  # cached from earlier cell
+
+# Robust JSON extractor (mirrors what the QwenAdapter does in our repo).
+def extract_json(text):
+    if not text: return None
+    text = text.strip()
+    if text.startswith("```"):
+        nl = text.find("\\n")
+        if nl >= 0: text = text[nl+1:]
+        if text.endswith("```"): text = text[:-3]
+        text = text.strip()
+    try:
+        obj = json.loads(text)
+        if isinstance(obj, dict): return obj
+    except Exception: pass
+    start = text.find("{")
+    if start < 0: return None
+    depth = 0
+    for i in range(start, len(text)):
+        if text[i] == "{": depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                try:
+                    obj = json.loads(text[start:i+1])
+                    if isinstance(obj, dict): return obj
+                except Exception: return None
+                break
+    return None
+
+def model_generate(messages, max_new_tokens=512, temperature=0.7):
+    inputs = tokenizer.apply_chat_template(messages, return_tensors="pt", add_generation_prompt=True).to("cuda")
+    outputs = model.generate(
+        inputs,
+        max_new_tokens=max_new_tokens,
+        do_sample=True,
+        temperature=temperature,
+        pad_token_id=tokenizer.eos_token_id,
+    )
+    decoded = tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
+    return decoded
+
+def run_episode(max_steps=30, temperature=0.7, verbose=False):
+    """One full rollout against the live HF Space env."""
+    r = requests.post(f"{ENV_BASE}/reset", json={}, timeout=60)
+    obs = r.json()["observation"]
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT_FOR_INFERENCE},
+        {"role": "user", "content": obs["content"]},
+    ]
+    total = 0.0
+    terminal = None
+    submitted = False
+    steps_done = 0
+    for step in range(max_steps):
+        text = model_generate(messages, temperature=temperature)
+        parsed = extract_json(text)
+        messages.append({"role": "assistant", "content": text})
+        if parsed is None or not isinstance(parsed.get("tool_name"), str):
+            if verbose: print(f"  step {step+1}: failed to parse JSON; stop")
+            break
+        action_payload = {
+            "tool_name": parsed["tool_name"],
+            "arguments": parsed.get("arguments") or {},
+            "reasoning": parsed.get("reasoning"),
+        }
+        try:
+            r = requests.post(f"{ENV_BASE}/step", json={"action": action_payload}, timeout=120)
+            payload = r.json()
+        except Exception as e:
+            if verbose: print(f"  step {step+1}: env call failed: {e}")
+            break
+        new_obs = payload["observation"]
+        reward = payload.get("reward") or 0.0
+        total += reward
+        done = payload.get("done", False)
+        steps_done = step + 1
+        if verbose: print(f"  step {step+1}: {action_payload[\'tool_name\']} -> reward={reward:.2f}, done={done}")
+        messages.append({"role": "user", "content": f"[{new_obs[\'observation_type\'].upper()}]\\n{new_obs[\'content\']}"})
+        if done:
+            if action_payload["tool_name"] == "submit_answer":
+                terminal = reward
+                submitted = True
+            break
+    return {"total_reward": total, "terminal_reward": terminal, "submitted": submitted, "num_steps": steps_done}''',
+    ),
+    (
+        "code",
+        """# Switch model into inference mode and run rollouts.
+FastLanguageModel.for_inference(model)
+
+N_ROLLOUTS = 5
+results = []
+for i in range(N_ROLLOUTS):
+    print(f"--- Rollout {i+1}/{N_ROLLOUTS} ---")
+    res = run_episode(max_steps=30, temperature=0.7, verbose=True)
+    results.append(res)
+    print(f"  total={res['total_reward']:.3f}, terminal={res['terminal_reward']}, submitted={res['submitted']}, steps={res['num_steps']}")
+
+submitted_terms = [r["terminal_reward"] for r in results if r["terminal_reward"] is not None]
+print()
+print("=" * 60)
+print(f"Fine-tuned Qwen results across {N_ROLLOUTS} rollouts:")
+print(f"  Submission rate: {len(submitted_terms)}/{N_ROLLOUTS} = {100*len(submitted_terms)/N_ROLLOUTS:.0f}%")
+if submitted_terms:
+    print(f"  Mean terminal reward (submitted only): {sum(submitted_terms)/len(submitted_terms):.3f}")
+    print(f"  Distribution: min={min(submitted_terms):.2f}, max={max(submitted_terms):.2f}")
+print(f"  Mean total reward (all): {sum(r['total_reward'] for r in results)/N_ROLLOUTS:.3f}")
+print()
+print("Baseline Qwen2.5-7B (pre-SFT) was ~0.05 mean, 20-40% submit rate.")
+print("Opus-4.5 ceiling is ~0.96 mean.")""",
+    ),
+    (
+        "code",
+        """# Plot before/after distribution
+import matplotlib.pyplot as plt
+import numpy as np
+
+QWEN_BASELINE = [None, 0.0, 0.0, None, None]  # from our pre-SFT run
+QWEN_FINETUNED_TERMS = [r["terminal_reward"] for r in results]
+OPUS_TERMS = [1.0, 0.94, 0.97, 1.0, 0.97, 0.85, 0.94, 1.0, 1.0]  # Round-4 sample
+
+def to_finite(xs, fill=0.0):
+    return [x if x is not None else fill for x in xs]
+
+groups = ["Qwen baseline", "Qwen + SFT", "Opus 4.5"]
+data = [to_finite(QWEN_BASELINE), to_finite(QWEN_FINETUNED_TERMS), OPUS_TERMS]
+means = [np.mean(d) if d else 0.0 for d in data]
+
+fig, ax = plt.subplots(figsize=(8, 5))
+positions = list(range(len(groups)))
+parts = ax.violinplot(data, positions=positions, showmeans=True, widths=0.7)
+ax.set_xticks(positions)
+ax.set_xticklabels(groups)
+ax.set_ylabel("Terminal reward")
+ax.set_title("Cloud Sec Env: terminal reward by model")
+ax.set_ylim(-0.05, 1.05)
+ax.grid(True, alpha=0.3)
+for i, m in enumerate(means):
+    ax.annotate(f"mean={m:.2f}", xy=(i, m), xytext=(i, m + 0.05),
+                ha="center", fontsize=10, fontweight="bold")
+plt.tight_layout()
+plt.savefig("/content/before_after_curve.png", dpi=130)
+plt.show()
+print("Saved /content/before_after_curve.png")""",
+    ),
+    (
+        "markdown",
+        """## 7. Save and (optionally) publish the adapter
+
+The trained adapter is in `/content/cloud_sec_sft_adapter`. To use it from outside Colab, push it to HF Hub:""",
+    ),
+    (
+        "code",
+        """# Optional: push adapter to HF Hub for downstream eval / sharing.
+# Requires you to set HF_TOKEN with write permission.
+
+# import os
+# os.environ["HF_TOKEN"] = "<your hf write token>"
+# model.push_to_hub("Krishna3451112/cloud-sec-env-qwen-sft", token=os.environ["HF_TOKEN"])
+# tokenizer.push_to_hub("Krishna3451112/cloud-sec-env-qwen-sft", token=os.environ["HF_TOKEN"])
+# print("Adapter pushed to HF Hub.")""",
     ),
 ]
 

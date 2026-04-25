@@ -1,0 +1,119 @@
+# Demo video script — Cloud Sec Env
+
+> Target: ~2 minutes. Single take ideal but cut-friendly. Voice-over over screen recordings.
+
+## Total budget: 120 seconds
+
+---
+
+## Beat 1 — Hook (0:00 – 0:15)
+
+**On-screen:** PagerDuty-style alert banner appears: `auth_svc_5xx_rate_cloud2 SEV-2`
+
+**Voice-over:**
+> "It's 2am. Your cloud security platform just paged you. One region is throwing 8.7% errors. You have 30 tool calls and a single answer."
+
+*[1-second beat for tension]*
+
+> "We built an environment that turns this kind of investigation into a benchmark — and a reward signal that captures what senior SREs actually do."
+
+---
+
+## Beat 2 — What's in the env (0:15 – 0:30)
+
+**On-screen:** Architecture diagram — 3 clouds, 5 services per cloud, plus 6 investigation tools floating around. Overlay each tool name as voice mentions it.
+
+**Voice-over:**
+> "Three clouds. Six tools — logs, traces, metrics, tickets, slack, and an internal knowledge base. All messy-but-coherent: trace IDs sometimes drop, service names drift, KB docs go stale. Real production noise."
+
+**On-screen detail:** brief flash of the actual `logs.jsonl` showing realistic log lines.
+
+---
+
+## Beat 3 — Watch Opus investigate (0:30 – 0:55)
+
+**On-screen:** Speed-up screen capture of an actual Opus rollout. Show:
+- Step 1: `logs_search(cloud=cloud-2, service=auth-svc, query=...)`
+- Step 5: `logs_search` finds JWT signature errors
+- Step 8: `ticket_search(query=OIDC)` — three tickets returned including CHG-1891 + CHG-1888
+- Step 14: `slack_search(channel=#infra-terraform)` — m.chen's state-lock thread
+- Step 22: `submit_answer` with the full root cause
+
+**Voice-over:**
+> "Here's Opus 4.5 actually solving it. It scopes to the alerting cloud, finds JWT signature failures, traces them to a Terraform key rotation gone wrong — but here's the catch: there are two plausible suspects. CHG-1891 and CHG-1888."
+
+*[brief pause]*
+
+> "Only the right answer rules out the wrong one — by noticing CHG-1888 also shipped to cloud-1, and cloud-1 is healthy."
+
+---
+
+## Beat 4 — The reward design (0:55 – 1:25)
+
+**On-screen:** Split-screen.
+- LEFT: A keyword-matching rubric with binary YES/NO checks.
+- RIGHT: An LLM judge with continuous 0-1 scores, justifications, and 8 dimensions.
+
+**Voice-over:**
+> "Most env rewards check whether the answer mentions the right keywords. Ours does that — fast, deterministic, primary."
+
+*[transition right side in]*
+
+> "But we layer an LLM judge on top that scores 8 dimensions — including two that actually catch what frontier models miss: did the agent rule out alternative hypotheses, and is every claim in the answer backed by evidence the agent actually observed in its trajectory?"
+
+**On-screen:** Highlight `explicit_elimination` and `evidence_supported_claims` dimensions with example justifications.
+
+> "An agent that hallucinates the right answer without investigating gets zero on evidence-supported. An agent that names the cause without ruling out alternatives gets zero on elimination. The reward is hard to game."
+
+---
+
+## Beat 5 — Training results (1:25 – 1:50)
+
+**On-screen:** A reward curve / violin plot showing three groups: Qwen baseline, Qwen+SFT, Opus 4.5.
+
+**Voice-over:**
+> "We harvested 55 high-quality Opus trajectories, fine-tuned a 7B Qwen via LoRA, and watched it go from this — *[point at baseline ~0.05]* — to this — *[point at SFT result]*."
+
+*[show key inference example: baseline Qwen produces broken text → fine-tuned Qwen produces clean JSON tool calls]*
+
+> "The model didn't just learn the format. It learned where to search, when to pivot to traces, how to read the Slack channel for human signal."
+
+---
+
+## Beat 6 — The takeaway (1:50 – 2:00)
+
+**On-screen:** Three bullets fade in:
+- ✓ Multi-source investigation env, OpenEnv-compliant
+- ✓ Composable rubric, hard to game
+- ✓ Evidence-grounded reward signal
+
+**Voice-over:**
+> "An env that captures real on-call work. A reward signal that catches hallucinations and rewards falsification. Live on HuggingFace Spaces."
+
+**On-screen:** Final card with HF Space URL and dataset URL.
+
+---
+
+## Production notes
+
+- Record screen captures at 1.5x; shorten with cuts during the Opus rollout.
+- Use a calm, technical voice — no hype.
+- Overlay tool-call JSON in monospace alongside the trajectory viewer.
+- Include the actual judge breakdown for one rollout — show the per-dimension scores with justifications.
+- If running over time, drop Beat 2 (env description) — most viewers will infer it from Beat 3.
+- Music: low-energy synth, no vocals.
+
+## Assets needed
+
+- [ ] One full Opus trajectory video (sped up) — pull from `trajectories/task_01_oidc_rotation_claude-opus-4-5_20260425_160235_r4.json` (terminal=1.0)
+- [ ] One Qwen baseline trajectory showing JSON parse failure (visual contrast)
+- [ ] One fine-tuned Qwen trajectory showing improved behavior (post-Colab run)
+- [ ] Reward curve / violin plot (auto-generated by Colab notebook)
+- [ ] Architecture diagram (3 clouds, 6 tools)
+
+## Talking-point bank (cut/paste from `DECISIONS.md`)
+
+- "We caught a contradiction halfway through: 'task too hard for Opus' makes sense for RL but breaks SFT. We pivoted."
+- "Our LLM judge runs against the full trajectory, not just the answer — hallucinated facts get zero."
+- "Pass@1 metric is threshold-dependent on continuous rewards. We chose the deterministic keyword rubric as the primary so judges without an API key can reproduce."
+- "55 Opus trajectories, 50 messages each — about 2,750 turns of behavioral cloning data."
