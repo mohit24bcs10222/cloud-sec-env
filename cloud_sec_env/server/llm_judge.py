@@ -35,7 +35,14 @@ import os
 import re
 from typing import Any, Optional
 
-from anthropic import Anthropic
+# Lazy-load anthropic so the env can be imported and run without it
+# (e.g. on HF Spaces when no API key is provided -- judge silently disables).
+try:
+    from anthropic import Anthropic  # type: ignore
+    _ANTHROPIC_IMPORT_ERROR: Exception | None = None
+except Exception as _e:  # pragma: no cover -- import guard
+    Anthropic = None  # type: ignore[assignment]
+    _ANTHROPIC_IMPORT_ERROR = _e
 
 
 JUDGE_MODEL_DEFAULT = "claude-sonnet-4-6"
@@ -222,6 +229,11 @@ class LLMJudge:
         api_key: Optional[str] = None,
         max_tokens: int = 2048,
     ):
+        if Anthropic is None:
+            raise RuntimeError(
+                "anthropic package is not installed. Either `pip install anthropic` "
+                f"or do not construct LLMJudge. Original import error: {_ANTHROPIC_IMPORT_ERROR}"
+            )
         self.model = model
         self.max_tokens = max_tokens
         self._client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))

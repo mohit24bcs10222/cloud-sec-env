@@ -20,6 +20,10 @@ dependencies = [
     "openenv-core[core]>=0.2.2",
     # Environment-specific dependencies
     "pyyaml>=6.0",
+    # Optional: if ANTHROPIC_API_KEY is set, the LLM-judge rubric
+    # auxiliary scoring activates. The env runs fine without this
+    # dep (keyword rubric is primary).
+    "anthropic>=0.40.0",
 ]
 
 [project.optional-dependencies]
