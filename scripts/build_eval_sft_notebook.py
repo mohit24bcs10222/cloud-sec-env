@@ -15,7 +15,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-NOTEBOOK_TITLE = "Cloud Sec Env -- Evaluate the SFT'd Qwen against the live env"
+NOTEBOOK_TITLE = "PagerBench -- Evaluate the SFT'd Qwen against the live env"
 
 # Hub repos / URLs the notebook references.
 ADAPTER_REPO = "Krishna3451112/cloud-sec"            # AutoTrain pushed here
@@ -29,7 +29,7 @@ CELLS: list[tuple[str, str]] = [
         f"""# {NOTEBOOK_TITLE}
 
 This notebook evaluates the **SFT-tuned Qwen2.5-7B** (LoRA adapter trained on
-55 high-reward Opus trajectories) against our **deployed Cloud Sec Env** on
+55 high-reward Opus trajectories) against our **deployed PagerBench** on
 HuggingFace Spaces.
 
 **What you get out of this notebook:**
@@ -270,7 +270,7 @@ mean_total = sum(r["total_reward"] for r in results) / n if n else 0.0
 mean_steps = sum(r["num_steps"] for r in results) / n if n else 0.0
 
 print("=" * 64)
-print(f"Cloud Sec Env -- Qwen2.5-7B + SFT (LoRA) -- {n} rollouts")
+print(f"PagerBench -- Qwen2.5-7B + SFT (LoRA) -- {n} rollouts")
 print("=" * 64)
 print(f"Submission rate:                         {n_sub}/{n}  ({100*n_sub/n:.0f}%)")
 print(f"Mean terminal reward (submitted only):   {mean_terminal:.3f}")
@@ -346,7 +346,7 @@ for body in parts["bodies"]:
 ax.set_xticks(positions)
 ax.set_xticklabels(groups, fontsize=11)
 ax.set_ylabel("Terminal reward (deterministic keyword rubric)")
-ax.set_title("Cloud Sec Env -- terminal reward by model")
+ax.set_title("PagerBench -- terminal reward by model")
 ax.set_ylim(-0.05, 1.10)
 ax.grid(True, alpha=0.3)
 for i, (m, c) in enumerate(zip(means, counts)):

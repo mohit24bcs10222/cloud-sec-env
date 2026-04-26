@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Cloud Sec Env -- one-command eval.
+# PagerBench -- one-command eval.
 #
 # Runs N episodes of <model> against either the deployed HF Space (default)
 # or a local in-process env, then prints a markdown summary table.
