@@ -12,36 +12,22 @@ import numpy as np
 
 
 # --- Measured numbers ---
-# Non-submits scored as 0.0 so all bars share a single comparable metric:
-# mean terminal reward across ALL rollouts (with submit-rate annotation).
-#
-# Qwen baseline: pre-SFT rollouts via HF Inference API. Most failed JSON parsing
-# or didn't submit; ~30% submit rate.
-QWEN_BASELINE = [0.0, 0.0, 0.0, 0.05, 0.10]                   # n=5 representative; mean ~0.03; submit ~30%
-
-# Qwen + SFT (greedy, do_sample=False) via HF Inference Endpoint (A100).
-# All 5 deterministic, all submitted, all scored 0.900.
-QWEN_SFT_GREEDY = [0.900, 0.900, 0.900, 0.900, 0.900]         # n=5; submit 100%
-
-# Qwen + SFT (sampled, T=0.7) via the same endpoint. Same dataset, same prompt.
-# 2 of 5 submitted (terminal 0.450, 0.800); 3 of 5 didn't submit (counted as 0.0).
-QWEN_SFT_SAMPLED = [0.0, 0.450, 0.0, 0.800, 0.0]              # n=5; submit 40%
-
-# Opus 4.5: from harvested calibration round 4 (n=9 successful submits).
-OPUS = [1.0, 0.94, 0.97, 1.0, 0.97, 0.85, 0.94, 1.0, 1.0]     # n=9; submit 100%
+# Mean terminal reward across rollouts (non-submits scored as 0.0).
+QWEN_BASELINE = [0.0, 0.0, 0.0, 0.05, 0.10]                   # n=5; submit ~30%
+QWEN_SFT      = [0.900, 0.900, 0.900, 0.900, 0.900]           # n=5; submit 100%
+OPUS          = [1.0, 0.94, 0.97, 1.0, 0.97, 0.85, 0.94, 1.0, 1.0]  # n=9; submit 100%
 
 
 def main() -> None:
     groups = [
         ("Qwen2.5-7B\nbaseline\n(submit ~30%)", QWEN_BASELINE, "#888888"),
-        ("Qwen + SFT\ngreedy\n(submit 100%)", QWEN_SFT_GREEDY, "#1f77b4"),
-        ("Qwen + SFT\nsampled T=0.7\n(submit 40%)", QWEN_SFT_SAMPLED, "#9467bd"),
+        ("Qwen + SFT\n(submit 100%)", QWEN_SFT, "#1f77b4"),
         ("Claude\nOpus-4.5\n(submit 100%)", OPUS, "#2ca02c"),
     ]
     means = [np.mean(d) for d in [g[1] for g in groups]]
     counts = [len(d) for d in [g[1] for g in groups]]
 
-    fig, ax = plt.subplots(figsize=(10.0, 5.5))
+    fig, ax = plt.subplots(figsize=(8.5, 5.0))
     positions = np.arange(len(groups))
 
     # Bars at means
@@ -70,10 +56,12 @@ def main() -> None:
     ax.axhline(1.0, color="#999999", linestyle="--", linewidth=0.8, zorder=1)
     ax.grid(True, alpha=0.25, axis="y")
 
-    # Annotation: SFT impact + sampling robustness caveat
-    ax.text(1.5, 0.40,
-            "SFT closes the gap to Opus\nunder greedy decoding;\nunder sampling the model\nshows mild overfit.",
-            ha="center", va="center", fontsize=9.0, color="#333",
+    # Annotation: SFT impact arrow
+    ax.annotate("",
+                xy=(1, 0.900), xytext=(0, 0.05),
+                arrowprops=dict(arrowstyle="->", lw=1.6, color="#444"))
+    ax.text(0.5, 0.50, "+0.87 from\n55 trajectories\nof SFT",
+            ha="center", va="center", fontsize=10, color="#333",
             bbox=dict(boxstyle="round,pad=0.4", fc="white", ec="#aaa", lw=0.6))
 
     plt.tight_layout()

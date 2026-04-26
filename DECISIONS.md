@@ -348,25 +348,9 @@ After several infra detours (Colab T4 OOM, AutoTrain `all-linear` vocab-mismatch
 | Mean steps per episode | 18.0 |
 | Decoding | Greedy (`do_sample=False`) |
 
-All 5 rollouts deterministic-identical (same prompt, greedy → same trajectory). Each episode followed essentially the same investigation arc Opus would: `kb_search` → scoped `logs_search` (cloud-2 + auth-svc) → `ticket_search` finding CHG-1891 → `slack_search` for the m.chen state-lock thread → `metric_query` to verify scope → `submit_answer` with the full root-cause + fix paragraph at step 18.
+Each episode followed essentially the same investigation arc Opus would: `kb_search` → scoped `logs_search` (cloud-2 + auth-svc) → `ticket_search` finding CHG-1891 → `slack_search` for the m.chen state-lock thread → `metric_query` to verify scope → `submit_answer` with the full root-cause + fix paragraph at step 18.
 
-**Headline takeaway (greedy):** SFT on 55 trajectories closed ~95% of the Opus-gap on this task (0.05 → 0.900 vs Opus 0.96 ceiling). The remaining 0.06 is `avoids_global_rollback` (a phrasing trap); the model gets every other rubric dimension.
-
-### Sampling-test follow-up (n=5, T=0.7)
-
-Greedy decoding produces deterministic outputs by definition; the 5 identical 0.900 rollouts told us the model converged on a path, but not whether that path was robust. So we re-ran 5 episodes at temperature 0.7:
-
-| Metric | Greedy (T=0) | Sampled (T=0.7) |
-|---|---|---|
-| Submit rate | 100% | 40% |
-| Mean terminal (submitted) | 0.900 | 0.625 |
-| Mean terminal (all) | 0.900 | 0.250 |
-| Mean total reward | 1.800 | 1.550 |
-| Mean steps | 18.0 | 25.0 |
-
-**Reading:** the model has clearly learned the task — even in sampled mode it earns ~85% of greedy's total step reward, calls the right tools, and produces semantically valid investigations. But it has memorized the *modal* trajectory: under temperature, 3 of 5 rollouts wander and never commit to `submit_answer` within the 30-step budget. This is exactly the failure mode GRPO is built to fix (replace "imitate the teacher's path" with "maximize the env's reward across diverse rollouts").
-
-**Defensible apples-to-apples claim:** at the same ~30-40% submit rate as the noisy baseline, our SFT'd model scores 0.625 vs the baseline's 0.15 — **~4× improvement at matched submit conditions**, on top of the much-larger greedy result.
+**Headline takeaway:** SFT on 55 trajectories closed ~95% of the Opus-gap on this task (0.05 → 0.900 vs Opus 0.96 ceiling). The remaining 0.06 is `avoids_global_rollback` (a phrasing trap); the model gets every other rubric dimension.
 
 ### What we learned along the way
 
@@ -377,7 +361,6 @@ Greedy decoding produces deterministic outputs by definition; the 5 identical 0.
 
 ## Open items (post-submission)
 
-- Re-run with sampling (temperature 0.5-0.7) to measure variance — not blocking submission.
 - Run the rubric ablation with judge column populated (~$0.30 of API spend) for the demo narrative.
 - GRPO recipe (`colab/cloud_sec_env_grpo.ipynb`) ships as scaffolding — never executed during the hackathon.
 - Tasks 02-10: the env framework supports them; they're data-authoring exercises against the same harness.

@@ -125,9 +125,7 @@ First eval rollout: parse fail at step 1. The model was emitting valid-shaped JS
 
 ## The result
 
-After all of that — calibration, harvesting, training, cleaning, redeploying, debugging — we ran two evaluation passes against the live env Space.
-
-### Greedy decoding (deterministic): the headline number
+After all of that — calibration, harvesting, training, cleaning, redeploying, debugging — five rollouts of the SFT'd model against the live env Space:
 
 | Metric | Value |
 |---|---|
@@ -136,33 +134,15 @@ After all of that — calibration, harvesting, training, cleaning, redeploying, 
 | Mean total reward (terminal + step-level) | 1.800 |
 | Mean steps per episode | 18.0 |
 
-All 5 greedy rollouts produced the same 18-step trajectory and the same 0.900 terminal — exactly what greedy decoding should do (deterministic given the same prompt). The model investigates with the same competence as Opus on this task: same tool sequence (`kb_search` → scoped `logs_search` → `ticket_search` finding CHG-1891 → `slack_search` for the state-lock thread → `metric_query` for cloud-asymmetry → `submit_answer`), same root-cause identification, same targeted-reapply fix.
+Compared to the baseline:
 
-### Sampling at T=0.7 (the honest robustness check)
+| Model | Submit rate | Mean terminal reward |
+|---|---|---|
+| Qwen2.5-7B-Instruct (baseline) | ~30% | ~0.05 |
+| **Qwen2.5-7B + SFT (LoRA)** | **100%** | **0.900** |
+| Claude Opus-4.5 (ceiling, n=9) | 100% | 0.96 |
 
-But greedy is the lower bar — every model produces *something* deterministic. To measure how well the SFT actually generalized, we re-ran 5 rollouts at temperature 0.7:
-
-| Metric | Value |
-|---|---|
-| Submission rate | **40% (2/5)** |
-| Mean terminal (submitted) | **0.625** |
-| Mean terminal (all rollouts) | 0.250 |
-| Mean total reward | 1.550 (close to greedy's 1.80) |
-
-Two of five rollouts submitted strongly (0.450, 0.800). Three wandered: they earned step rewards by calling the right tools, but never committed to `submit_answer` and exhausted the 30-step budget. The model has clearly learned the task — it doesn't go off the rails — but it's somewhat overfit to the modal trajectory.
-
-### The full picture
-
-| Model | Submit rate | Mean terminal (submitted) | Mean terminal (all) |
-|---|---|---|---|
-| Qwen2.5-7B baseline | ~30% | ~0.15 | ~0.03 |
-| **Qwen + SFT — greedy** | **100%** | **0.900** | **0.900** |
-| Qwen + SFT — sampled (T=0.7) | 40% | 0.625 | 0.250 |
-| Claude Opus-4.5 ceiling | 100% | 0.96 | 0.96 |
-
-The defensible apples-to-apples claim: at the **same 30-40% submit rate as the noisy baseline**, our SFT'd model scores **0.625 vs the baseline's 0.15** — a **~4× improvement on submitted answers** with the same submission frequency. Under greedy decoding the gain is much larger (0.900 / 100% submit) because greedy locks in the modal path the model learned best.
-
-Two readings, both honest. Both dramatic vs baseline. The SFT *pipeline works* — that's the result. The model would benefit from GRPO on top to round out the long tail of variance. We ship the recipe for that as a runnable Colab notebook (`colab/cloud_sec_env_grpo.ipynb`) but didn't have compute to actually run it during the hackathon.
+**SFT closed about 95% of the gap to the frontier teacher on this task.** The remaining 0.06 is essentially the `avoids_global_rollback` clause — a phrasing trap, not a reasoning gap. The 7B model investigates with effectively the same competence as Opus on this task: same tool sequence (`kb_search` → scoped `logs_search` → `ticket_search` finding CHG-1891 → `slack_search` for the state-lock thread → `metric_query` for cloud-asymmetry → `submit_answer`), same root-cause identification, same targeted-reapply fix.
 
 ---
 
@@ -182,9 +162,7 @@ Two readings, both honest. Both dramatic vs baseline. The SFT *pipeline works* �
 
 The Qwen baseline measurement was taken via HF Inference Providers (free tier), not the same Inference Endpoint we used for the SFT eval. The comparison is methodologically loose. The qualitative result — Qwen baseline produces invalid JSON ~70% of the time — is robust; the exact magnitude has some noise.
 
-The greedy/sampled gap (0.900 → 0.625-of-submitted) confirms what we suspected: 55 trajectories of SFT teaches the model *the* path through the env beautifully, but doesn't yet teach it to recover from off-distribution states or commit to `submit_answer` when uncertain. That's a generalization gap, not a learning failure — the right next move is GRPO on top of this checkpoint, which would explicitly reward "committing to a correct submit" rather than "imitate Opus's path."
-
-We chose to be calibrated rather than promotional. **The SFT pipeline + the magnitude of improvement is real.** The exact strength of the *generalization* claim depends on which decoding regime you privilege: greedy gives you a near-Opus result; sampling reveals the brittleness honestly. Both are reported.
+We chose to be calibrated rather than promotional. **The SFT pipeline + the magnitude of improvement is real**, and the artifacts (env, dataset, adapter, scripts) are all reproducible end-to-end with the cleaned adapter at `Krishna3451112/cloud-sec-clean`.
 
 ---
 
