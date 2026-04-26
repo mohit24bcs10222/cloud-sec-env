@@ -1,4 +1,4 @@
-"""Evaluate the SFT'd Qwen against the deployed Cloud Sec Env using a HF Inference Endpoint as the LLM.
+"""Evaluate the SFT'd Qwen against the deployed PagerBench env using a HF Inference Endpoint as the LLM.
 
 Drives the model entirely over HTTP -- no local GPU required. The HF endpoint
 runs Qwen2.5-7B + our cleaned LoRA; we apply the chat template locally and POST

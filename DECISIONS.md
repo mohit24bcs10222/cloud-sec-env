@@ -8,9 +8,9 @@
 
 ## Strategic positioning
 
-### Pursue Cloud Sec Env for the hackathon (vs. starting fresh on a simpler theme)
+### Pursue PagerBench for the hackathon (vs. starting fresh on a simpler theme)
 
-- **Decision:** Build the cloud-security incident-investigation env originally specified in `Environment_Spec.md`, mapped to Theme #3.1 (Professional Tasks / World Modeling).
+- **Decision:** Build the cloud-security incident-investigation env, mapped to Theme #3.1 (Professional Tasks / World Modeling).
 - **Alternatives considered:** Toy puzzle world (faster but generic), multi-agent negotiation (Theme #1, novel but less rubric-aligned), long-horizon planning (Theme #2 — works as a secondary frame).
 - **Reasoning:**
   - Domain depth as moat: most hackathon teams will ship toy environments. Cloud security is a domain that's *hard to fake* and immediately credible to engineering judges.
@@ -293,7 +293,7 @@ After running 4 calibration rounds trying to push Opus Pass@1 below 50%, we ran 
 
 ### The SFT-vs-RL contradiction we caught late
 
-The "Opus Pass@1 < 50%" goal lives in our internal `Environment_Spec.md` and has an *RL framing*: in RL, reward signal directly trains the agent, so a hard task is the goal. But our planned training approach was *SFT* on Opus trajectories, where Opus is the **teacher** — and an unsuccessful teacher produces bad training data.
+The "Opus Pass@1 < 50%" goal we'd been pushing toward has an *RL framing*: in RL, reward signal directly trains the agent, so a hard task is the goal. But our planned training approach was *SFT* on Opus trajectories, where Opus is the **teacher** — and an unsuccessful teacher produces bad training data.
 
 These two goals contradict. We spent multiple calibration rounds trying to make Opus fail, which directly damages the SFT data quality.
 

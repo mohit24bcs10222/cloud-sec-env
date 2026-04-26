@@ -1,4 +1,4 @@
-"""Generate the Colab fine-tuning notebook for the Cloud Sec Env.
+"""Generate the Colab fine-tuning notebook for the PagerBench.
 
 Writes `colab/cloud_sec_env_sft.ipynb` — a self-contained notebook that:
   1. Installs Unsloth + TRL
@@ -17,7 +17,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-NOTEBOOK_TITLE = "Cloud Sec Env — SFT fine-tune (Qwen2.5-7B + Unsloth + TRL)"
+NOTEBOOK_TITLE = "PagerBench — SFT fine-tune (Qwen2.5-7B + Unsloth + TRL)"
 
 CELLS: list[tuple[str, str]] = [
     # (cell_type, source)
@@ -25,7 +25,7 @@ CELLS: list[tuple[str, str]] = [
         "markdown",
         f"""# {NOTEBOOK_TITLE}
 
-This notebook fine-tunes **Qwen2.5-7B-Instruct** on Opus-generated incident-investigation trajectories from our **Cloud Sec Env** using [Unsloth](https://github.com/unslothai/unsloth) and [TRL](https://github.com/huggingface/trl).
+This notebook fine-tunes **Qwen2.5-7B-Instruct** on Opus-generated incident-investigation trajectories from our **PagerBench** using [Unsloth](https://github.com/unslothai/unsloth) and [TRL](https://github.com/huggingface/trl).
 
 **Training data:** [Krishna3451112/cloud-sec-env-sft](https://huggingface.co/datasets/Krishna3451112/cloud-sec-env-sft) — 55 high-quality trajectories filtered from Opus-4.5 rollouts (mean terminal reward 0.97 under our deterministic keyword rubric).
 
@@ -99,7 +99,7 @@ Our SFT data is one JSONL line per trajectory, each with a `messages` field that
         "code",
         """from datasets import load_dataset
 
-# Public HF dataset of Opus-generated trajectories from our Cloud Sec Env.
+# Public HF dataset of Opus-generated trajectories from our PagerBench.
 # 55 high-quality investigation trajectories, mean terminal reward 0.968.
 DATASET_REPO = "Krishna3451112/cloud-sec-env-sft"
 dataset = load_dataset(DATASET_REPO, data_files="train.jsonl", split="train")
@@ -184,7 +184,7 @@ plt.figure(figsize=(8, 4))
 plt.plot(steps, losses, marker="o", linewidth=1, markersize=3)
 plt.xlabel("Training step")
 plt.ylabel("Loss")
-plt.title("Cloud Sec Env -- Qwen2.5-7B SFT loss")
+plt.title("PagerBench -- Qwen2.5-7B SFT loss")
 plt.grid(True, alpha=0.3)
 plt.tight_layout()
 plt.savefig("/content/sft_loss.png", dpi=120)
@@ -382,7 +382,7 @@ parts = ax.violinplot(data, positions=positions, showmeans=True, widths=0.7)
 ax.set_xticks(positions)
 ax.set_xticklabels(groups)
 ax.set_ylabel("Terminal reward")
-ax.set_title("Cloud Sec Env: terminal reward by model")
+ax.set_title("PagerBench: terminal reward by model")
 ax.set_ylim(-0.05, 1.05)
 ax.grid(True, alpha=0.3)
 for i, m in enumerate(means):

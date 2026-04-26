@@ -1,4 +1,4 @@
-# Demo video script — Cloud Sec Env
+# Demo video script — PagerBench
 
 > Target: ~2 minutes. Single take ideal but cut-friendly. Voice-over over screen recordings.
 

@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-FastAPI application for the Cloud Sec Env Environment.
+FastAPI application for the PagerBench Environment.
 
 This module creates an HTTP server that exposes the CloudSecEnvironment
 over HTTP and WebSocket endpoints, compatible with EnvClient.

@@ -1,4 +1,4 @@
-# Cloud Sec Env: training a 7B model to do on-call investigation, with a reward function that's hard to game
+# PagerBench: training a 7B model to do on-call investigation, with a reward function that's hard to game
 
 > **TL;DR.** We built an OpenEnv-compatible cloud-security incident-investigation environment, harvested 55 high-quality Opus trajectories, and fine-tuned Qwen2.5-7B via SFT. The interesting part isn't the training — it's the reward function. Our LLM-judge layer scores answers against the agent's actual investigation trajectory, penalizing hallucinated claims. And it rewards a senior-SRE skill that frontier models reliably miss: explicitly ruling out alternative hypotheses, not just naming the right one.
 >

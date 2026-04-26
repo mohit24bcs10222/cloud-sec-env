@@ -51,7 +51,7 @@ def main() -> None:
     ax.set_xticks(positions)
     ax.set_xticklabels([g[0] for g in groups], fontsize=11)
     ax.set_ylabel("Terminal reward (deterministic keyword rubric)", fontsize=11)
-    ax.set_title("Cloud Sec Env -- terminal reward by model", fontsize=13, pad=12)
+    ax.set_title("PagerBench — terminal reward by model", fontsize=13, pad=12)
     ax.set_ylim(-0.05, 1.18)
     ax.axhline(1.0, color="#999999", linestyle="--", linewidth=0.8, zorder=1)
     ax.grid(True, alpha=0.25, axis="y")

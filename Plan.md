@@ -1,6 +1,6 @@
-# Cloud Sec Env — Implementation Plan
+# PagerBench — Implementation Plan
 
-> **Companion to:** `Environment_Spec.md` (the problem statement).
+> **Original problem statement:** kept in this doc directly (companion spec was archived).
 > **Author context:** solo developer, full-stack background, first time working with observability / LLM-agent evaluation / cloud security. Plan is written to be shared with a collaborator who wasn't in the design discussion.
 
 ---

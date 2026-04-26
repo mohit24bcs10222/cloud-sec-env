@@ -42,7 +42,7 @@ def main() -> None:
 
     ax.set_xlabel("Training step (45 total, batch=2 × grad-accum=4 = effective batch 8)", fontsize=10)
     ax.set_ylabel("SFT cross-entropy loss", fontsize=11)
-    ax.set_title("Cloud Sec Env — Qwen2.5-7B SFT training loss\n21 minutes on A100, AutoTrain + 55 trajectories",
+    ax.set_title("PagerBench — Qwen2.5-7B SFT training loss\n21 minutes on A100, AutoTrain + 55 trajectories",
                  fontsize=12, pad=10)
     ax.set_ylim(0, max(LOSS) * 1.15)
     ax.set_xlim(0, max(STEPS) + 2)

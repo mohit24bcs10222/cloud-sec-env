@@ -1,4 +1,4 @@
-# Hackathon Tasks — Cloud Sec Env
+# Hackathon Tasks — PagerBench
 
 > 48-hour tracking doc. Team of 2 (Person A = Env track, Person B = Training/Agent track). Tick as you go.
 

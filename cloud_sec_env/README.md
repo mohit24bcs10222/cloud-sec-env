@@ -1,5 +1,5 @@
 ---
-title: Cloud Sec Env Environment Server
+title: PagerBench Environment Server
 emoji: 🎭
 colorFrom: green
 colorTo: pink
@@ -11,13 +11,13 @@ tags:
   - openenv
 ---
 
-# Cloud Sec Env Environment
+# PagerBench Environment
 
 A simple test environment that echoes back messages. Perfect for testing the env APIs as well as demonstrating environment usage patterns.
 
 ## Quick Start
 
-The simplest way to use the Cloud Sec Env environment is through the `CloudSecEnv` class:
+The simplest way to use the PagerBench environment is through the `CloudSecEnv` class:
 
 ```python
 from cloud_sec_env import CloudSecAction, CloudSecEnv
@@ -140,7 +140,7 @@ The reward is calculated as: `message_length × 0.1`
 
 ### Connecting to an Existing Server
 
-If you already have a Cloud Sec Env environment server running, you can connect directly:
+If you already have a PagerBench environment server running, you can connect directly:
 
 ```python
 from cloud_sec_env import CloudSecEnv
