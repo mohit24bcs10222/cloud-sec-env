@@ -1,4 +1,4 @@
-"""Generate the GRPO recipe notebook for the Cloud Sec Env.
+"""Generate the GRPO recipe notebook for the PagerBench.
 
 Writes `colab/cloud_sec_env_grpo.ipynb` -- a runnable RL recipe that picks up
 from the SFT'd Qwen2.5-7B adapter and applies GRPO using step-level rewards
@@ -13,7 +13,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-NOTEBOOK_TITLE = "Cloud Sec Env -- GRPO recipe (Qwen2.5-7B + TRL + step rewards)"
+NOTEBOOK_TITLE = "PagerBench -- GRPO recipe (Qwen2.5-7B + TRL + step rewards)"
 
 CELLS: list[tuple[str, str]] = [
     (
@@ -23,7 +23,7 @@ CELLS: list[tuple[str, str]] = [
 Reinforcement-learning recipe that picks up where the SFT notebook leaves off.
 Continues fine-tuning Qwen2.5-7B-Instruct (with the LoRA adapter from
 `cloud_sec_env_sft.ipynb`) using **GRPO** (Group Relative Policy Optimization)
-on dense step-level rewards from our Cloud Sec Env.
+on dense step-level rewards from our PagerBench.
 
 > **NOTE.** This notebook is shipped as a *runnable recipe*. We did **not** run
 > it during the OpenEnv hackathon (April 2026) due to a 6-hour wall-clock

@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-Reward scoring for the Cloud Sec Env.
+Reward scoring for the PagerBench.
 
 Two distinct reward streams, both read from `ground_truth.yaml`:
 

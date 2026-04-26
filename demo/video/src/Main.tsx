@@ -1,21 +1,21 @@
 import { AbsoluteFill, Sequence } from "remotion";
 import { Hook } from "./scenes/Hook";
-import { EnvOverview } from "./scenes/EnvOverview";
-import { OpusRollout } from "./scenes/OpusRollout";
+import { ThemeCard } from "./scenes/ThemeCard";
+import { Environment } from "./scenes/Environment";
 import { RewardDesign } from "./scenes/RewardDesign";
 import { Results } from "./scenes/Results";
-import { Takeaway } from "./scenes/Takeaway";
+import { Closing } from "./scenes/Closing";
 import { FPS } from "./theme";
 
 const sec = (s: number) => Math.round(s * FPS);
 
 export const BEATS = [
   { component: Hook, durationSec: 15 },
-  { component: EnvOverview, durationSec: 15 },
-  { component: OpusRollout, durationSec: 25 },
-  { component: RewardDesign, durationSec: 30 },
-  { component: Results, durationSec: 25 },
-  { component: Takeaway, durationSec: 10 },
+  { component: ThemeCard, durationSec: 25 },
+  { component: Environment, durationSec: 30 },
+  { component: RewardDesign, durationSec: 35 },
+  { component: Results, durationSec: 30 },
+  { component: Closing, durationSec: 15 },
 ] as const;
 
 export const TOTAL_FRAMES = BEATS.reduce(

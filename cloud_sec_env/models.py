@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-Data models for the Cloud Sec Env Environment.
+Data models for the PagerBench Environment.
 
 Action / Observation contracts the agent and env exchange over HTTP/WebSocket.
 """

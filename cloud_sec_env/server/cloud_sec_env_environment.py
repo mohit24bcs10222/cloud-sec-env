@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-Cloud Sec Env Environment.
+PagerBench Environment.
 
 Wires the tool layer + reward scorer into OpenEnv's reset/step interface.
 Step-level rewards feed dense training signal; terminal reward evaluates

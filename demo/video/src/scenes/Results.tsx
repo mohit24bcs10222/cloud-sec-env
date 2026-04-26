@@ -1,172 +1,220 @@
 import {
   AbsoluteFill,
+  Img,
+  Sequence,
   interpolate,
   spring,
+  staticFile,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { theme } from "../theme";
-import { Caption } from "../components/Caption";
-import { SceneTitle } from "../components/SceneTitle";
 
-const BARS = [
-  { label: "Qwen baseline", value: 0.05, color: theme.red },
-  { label: "Qwen + SFT (sampled)", value: 0.625, color: theme.amber },
-  { label: "Qwen + SFT (greedy)", value: 0.9, color: theme.green },
-  { label: "Claude Opus 4.5", value: 0.96, color: theme.purple },
-];
+type ChartBeatProps = {
+  kicker: string;
+  title: string;
+  takeaway: string;
+  src: string;
+};
 
-const CHART_HEIGHT = 540;
-const Y_MAX = 1.0;
-
-const Bar: React.FC<{
-  value: number;
-  color: string;
-  label: string;
-  index: number;
-  total: number;
-}> = ({ value, color, label, index, total }) => {
+const ChartBeat: React.FC<ChartBeatProps> = ({
+  kicker,
+  title,
+  takeaway,
+  src,
+}) => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const delay = 12 + index * 10;
-  const sp = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 22, stiffness: 80 },
+  const { fps, durationInFrames } = useVideoConfig();
+
+  const inSp = spring({ frame, fps, config: { damping: 18, stiffness: 110 } });
+  const fadeIn = interpolate(frame, [0, 12], [0, 1], {
+    extrapolateRight: "clamp",
   });
-  const barH = (sp * value * CHART_HEIGHT) / Y_MAX;
+  const fadeOut = interpolate(
+    frame,
+    [durationInFrames - 12, durationInFrames],
+    [1, 0],
+    { extrapolateLeft: "clamp", extrapolateRight: "clamp" },
+  );
+  const opacity = Math.min(fadeIn, fadeOut);
+  const slide = interpolate(inSp, [0, 1], [16, 0]);
+
   return (
-    <div
-      style={{
-        flex: 1,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "flex-end",
-      }}
-    >
+    <AbsoluteFill style={{ padding: 80, opacity }}>
       <div
         style={{
-          color: theme.text,
-          fontFamily: theme.mono,
-          fontSize: 26,
-          fontWeight: 700,
-          marginBottom: 10,
-          opacity: sp,
+          transform: `translateY(${slide}px)`,
+          color: theme.accent,
+          fontSize: 22,
+          letterSpacing: 4,
+          fontWeight: 600,
+          textTransform: "uppercase",
+          marginBottom: 8,
         }}
       >
-        {(sp * value).toFixed(3)}
+        {kicker}
       </div>
       <div
         style={{
-          width: 180,
-          height: barH,
-          background: `linear-gradient(180deg, ${color}, ${color}aa)`,
-          borderRadius: "8px 8px 0 0",
-          boxShadow: `0 0 28px ${color}66`,
+          color: theme.text,
+          fontSize: 52,
+          fontWeight: 800,
+          lineHeight: 1.1,
+          marginBottom: 24,
+          maxWidth: 1700,
         }}
-      />
+      >
+        {title}
+      </div>
+
+      <div
+        style={{
+          flex: 1,
+          background: "#ffffff",
+          borderRadius: 18,
+          padding: 24,
+          boxShadow: `0 0 40px ${theme.bgAccent}`,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          minHeight: 0,
+        }}
+      >
+        <Img
+          src={staticFile(src)}
+          style={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            objectFit: "contain",
+          }}
+        />
+      </div>
+
+      <div
+        style={{
+          marginTop: 24,
+          color: theme.textMuted,
+          fontSize: 26,
+          fontWeight: 500,
+          textAlign: "center",
+        }}
+      >
+        {takeaway}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
+const HeadlineStrip: React.FC = () => {
+  const frame = useCurrentFrame();
+  const { fps } = useVideoConfig();
+  const sp = spring({ frame, fps, config: { damping: 16 } });
+  const Stat: React.FC<{ label: string; value: string }> = ({
+    label,
+    value,
+  }) => (
+    <div style={{ textAlign: "center" }}>
+      <div
+        style={{
+          color: theme.accent,
+          fontSize: 32,
+          fontWeight: 800,
+          fontFamily: theme.mono,
+        }}
+      >
+        {value}
+      </div>
       <div
         style={{
           color: theme.textMuted,
-          fontSize: 20,
+          fontSize: 16,
           fontWeight: 500,
-          marginTop: 14,
-          textAlign: "center",
-          maxWidth: 220,
-          opacity: sp,
-          minHeight: 64,
+          letterSpacing: 2,
+          textTransform: "uppercase",
+          marginTop: 2,
         }}
       >
         {label}
       </div>
     </div>
   );
-};
-
-export const Results: React.FC = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const headlineSp = spring({
-    frame: frame - fps * 4,
-    fps,
-    config: { damping: 16 },
-  });
-
   return (
-    <AbsoluteFill style={{ background: theme.bg, padding: 80 }}>
-      <SceneTitle
-        kicker="The result"
-        title="From 0.05 to 0.900 in 21 minutes of training."
-      />
-
+    <AbsoluteFill
+      style={{
+        justifyContent: "flex-start",
+        alignItems: "center",
+        paddingTop: 40,
+        opacity: sp,
+        pointerEvents: "none",
+      }}
+    >
       <div
         style={{
-          display: "flex",
-          gap: 32,
-          marginTop: 50,
-          alignItems: "flex-end",
-          height: CHART_HEIGHT + 120,
-          padding: "0 60px",
-          borderBottom: `2px solid ${theme.panelLight}`,
-        }}
-      >
-        {BARS.map((b, i) => (
-          <Bar
-            key={b.label}
-            value={b.value}
-            color={b.color}
-            label={b.label}
-            index={i}
-            total={BARS.length}
-          />
-        ))}
-      </div>
-
-      <div
-        style={{
-          marginTop: 30,
           display: "flex",
           gap: 48,
-          justifyContent: "center",
-          opacity: headlineSp,
-          transform: `translateY(${interpolate(headlineSp, [0, 1], [10, 0])}px)`,
+          background: theme.panel + "ee",
+          padding: "16px 36px",
+          borderRadius: 999,
+          border: `1px solid ${theme.panelLight}`,
         }}
       >
         <Stat label="Trajectories" value="55" />
-        <Stat label="Train time" value="21 min" />
-        <Stat label="Hardware" value="A100 · LoRA" />
-        <Stat label="Total cost" value="~$5" />
+        <Stat label="Train" value="21 min" />
+        <Stat label="HW" value="A100 · LoRA" />
+        <Stat label="Cost" value="~$5" />
       </div>
-
-      <Caption text="55 high-quality Opus trajectories. LoRA on Qwen-7B for 21 minutes. Greedy decoding lands at 0.900 — closing ~95% of the gap to Opus." />
     </AbsoluteFill>
   );
 };
 
-const Stat: React.FC<{ label: string; value: string }> = ({ label, value }) => (
-  <div style={{ textAlign: "center" }}>
-    <div
-      style={{
-        color: theme.accent,
-        fontSize: 36,
-        fontWeight: 800,
-        fontFamily: theme.mono,
-      }}
-    >
-      {value}
-    </div>
-    <div
-      style={{
-        color: theme.textMuted,
-        fontSize: 18,
-        fontWeight: 500,
-        letterSpacing: 2,
-        textTransform: "uppercase",
-        marginTop: 4,
-      }}
-    >
-      {label}
-    </div>
-  </div>
-);
+export const Results: React.FC = () => {
+  const { fps, durationInFrames } = useVideoConfig();
+  const beatDur = Math.floor(durationInFrames / 4);
+
+  const charts: ChartBeatProps[] = [
+    {
+      kicker: "training",
+      title: "21 minutes on a single A100.",
+      takeaway: "loss 4.32 → 0.53 · LoRA on Qwen-2.5-7B",
+      src: "charts/training_loss.png",
+    },
+    {
+      kicker: "before / after",
+      title: "0.05 → 0.90 mean terminal reward.",
+      takeaway: "95% of the way to a frontier model on this task",
+      src: "charts/before_after_chart.png",
+    },
+    {
+      kicker: "step rewards",
+      title: "Earned turn by turn — not memorized.",
+      takeaway: "cumulative reward over the 18-step episode",
+      src: "charts/step_reward_curve.png",
+    },
+    {
+      kicker: "rubric breakdown",
+      title: "Per-dimension comparison.",
+      takeaway: "baseline · SFT · Opus 4.5",
+      src: "charts/rubric_breakdown.png",
+    },
+  ];
+
+  return (
+    <AbsoluteFill style={{ background: theme.bg }}>
+      {charts.map((c, i) => (
+        <Sequence
+          key={i}
+          from={i * beatDur}
+          durationInFrames={beatDur}
+          layout="none"
+        >
+          <ChartBeat {...c} />
+        </Sequence>
+      ))}
+      <Sequence from={0} durationInFrames={fps * 3} layout="none">
+        <HeadlineStrip />
+      </Sequence>
+    </AbsoluteFill>
+  );
+};

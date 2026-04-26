@@ -5,7 +5,7 @@
 # LICENSE file in the root directory of this source tree.
 
 """
-Tool implementations for the Cloud Sec Env environment.
+Tool implementations for the PagerBench environment.
 
 Each tool:
   - validates its arguments

@@ -15,14 +15,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-NOTEBOOK_TITLE = "Cloud Sec Env -- Evaluate fine-tuned Qwen (no retrain)"
+NOTEBOOK_TITLE = "PagerBench -- Evaluate fine-tuned Qwen (no retrain)"
 
 CELLS: list[tuple[str, str]] = [
     (
         "markdown",
         f"""# {NOTEBOOK_TITLE}
 
-This notebook evaluates an **already-trained** Qwen2.5-7B + LoRA adapter against the live [Cloud Sec Env HF Space](https://huggingface.co/spaces/Krishna3451112/cloud-sec-env-space). No training step.
+This notebook evaluates an **already-trained** Qwen2.5-7B + LoRA adapter against the live [PagerBench HF Space](https://huggingface.co/spaces/Krishna3451112/cloud-sec-env-space). No training step.
 
 **Setup:** Runtime -> Change runtime type -> **T4 GPU** (free tier works).
 
@@ -335,7 +335,7 @@ ax.violinplot(data, positions=positions, showmeans=True, widths=0.7)
 ax.set_xticks(positions)
 ax.set_xticklabels(groups)
 ax.set_ylabel("Terminal reward")
-ax.set_title("Cloud Sec Env: terminal reward by model")
+ax.set_title("PagerBench: terminal reward by model")
 ax.set_ylim(-0.05, 1.05)
 ax.grid(True, alpha=0.3)
 for i, m in enumerate(means):

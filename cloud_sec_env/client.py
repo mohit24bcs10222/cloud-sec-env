@@ -4,7 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
-"""Cloud Sec Env Environment Client."""
+"""PagerBench Environment Client."""
 
 from typing import Dict
 
@@ -16,7 +16,7 @@ from .models import CloudSecAction, CloudSecObservation
 
 
 class CloudSecEnv(EnvClient[CloudSecAction, CloudSecObservation, State]):
-    """Client for the Cloud Sec Env environment.
+    """Client for the PagerBench environment.
 
     Example:
         >>> with CloudSecEnv(base_url="http://localhost:8000") as client:

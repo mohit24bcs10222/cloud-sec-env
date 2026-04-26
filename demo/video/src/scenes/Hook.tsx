@@ -1,141 +1,91 @@
 import {
   AbsoluteFill,
   interpolate,
-  spring,
   useCurrentFrame,
   useVideoConfig,
 } from "remotion";
 import { theme } from "../theme";
-import { Caption } from "../components/Caption";
 
-const Pulse: React.FC<{ children: React.ReactNode; delay?: number }> = ({
-  children,
-  delay = 0,
-}) => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const s = spring({
-    frame: frame - delay,
-    fps,
-    config: { damping: 14, stiffness: 90 },
-  });
-  return (
-    <div
-      style={{
-        opacity: s,
-        transform: `scale(${interpolate(s, [0, 1], [0.92, 1])})`,
-      }}
-    >
-      {children}
-    </div>
-  );
-};
+const FULL_TEXT = [
+  "ALERT  auth_svc_5xx_rate_cloud2",
+  "SEV-2  fired 2026-04-22  14:02 UTC",
+];
 
 export const Hook: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
-  const flash = Math.sin((frame / fps) * 2 * Math.PI * 1.2) * 0.5 + 0.5;
 
-  // Caption switches mid-beat
-  const showSecond = frame > 7 * fps;
+  // Black for ~0.5s, then type characters
+  const typeStart = Math.round(0.5 * fps);
+  const charsPerSec = 28;
+  const totalChars = FULL_TEXT.join("\n").length;
+  const visibleChars = Math.max(
+    0,
+    Math.min(
+      totalChars,
+      Math.round(((frame - typeStart) / fps) * charsPerSec),
+    ),
+  );
+
+  const joined = FULL_TEXT.join("\n");
+  const renderedText = joined.slice(0, visibleChars);
+
+  // Caret blink
+  const caretOn = Math.floor((frame / fps) * 2) % 2 === 0;
+
+  // Subtle red glow once SEV-2 line appears
+  const sevGlowFrame = typeStart + Math.round((35 / charsPerSec) * fps);
+  const glow = interpolate(frame, [sevGlowFrame, sevGlowFrame + 20], [0, 1], {
+    extrapolateLeft: "clamp",
+    extrapolateRight: "clamp",
+  });
+
+  // Vignette pulse
+  const pulse = Math.sin((frame / fps) * Math.PI * 1.2) * 0.5 + 0.5;
 
   return (
     <AbsoluteFill
       style={{
-        background: `radial-gradient(ellipse at top, ${theme.bgAccent}, ${theme.bg} 70%)`,
+        background: "#000",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      <Pulse delay={4}>
-        <div
-          style={{
-            background: theme.panel,
-            border: `2px solid ${theme.red}`,
-            borderRadius: 18,
-            padding: "32px 56px",
-            minWidth: 1100,
-            boxShadow: `0 0 ${40 + flash * 30}px ${theme.red}55`,
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 18,
-              marginBottom: 14,
-            }}
-          >
-            <div
-              style={{
-                width: 16,
-                height: 16,
-                borderRadius: 16,
-                background: theme.red,
-                boxShadow: `0 0 16px ${theme.red}`,
-              }}
-            />
-            <div
-              style={{
-                color: theme.red,
-                fontSize: 22,
-                fontWeight: 700,
-                letterSpacing: 4,
-              }}
-            >
-              SEV-2 · PAGED
-            </div>
-            <div
-              style={{
-                marginLeft: "auto",
-                color: theme.textMuted,
-                fontFamily: theme.mono,
-                fontSize: 20,
-              }}
-            >
-              02:14:07 UTC
-            </div>
-          </div>
-          <div
-            style={{
-              color: theme.text,
-              fontSize: 44,
-              fontWeight: 700,
-              fontFamily: theme.mono,
-              marginBottom: 8,
-            }}
-          >
-            auth_svc_5xx_rate_cloud2
-          </div>
-          <div style={{ color: theme.textMuted, fontSize: 26 }}>
-            error rate <span style={{ color: theme.red }}>8.7%</span> ·
-            tenant <span style={{ color: theme.amber }}>acme-corp</span> ·
-            cloud-2 <span style={{ color: theme.red }}>↑</span>
-          </div>
-        </div>
-      </Pulse>
-
+      <AbsoluteFill
+        style={{
+          background: `radial-gradient(ellipse at center, ${theme.red}${Math.round(
+            glow * pulse * 16,
+          )
+            .toString(16)
+            .padStart(2, "0")} 0%, transparent 60%)`,
+          mixBlendMode: "screen",
+        }}
+      />
       <div
         style={{
-          marginTop: 44,
-          color: theme.textMuted,
-          fontSize: 28,
           fontFamily: theme.mono,
-          opacity: interpolate(frame, [12, 30], [0, 1], {
-            extrapolateRight: "clamp",
-          }),
+          fontSize: 56,
+          fontWeight: 600,
+          color: theme.text,
+          lineHeight: 1.4,
+          textAlign: "left",
+          letterSpacing: 1,
+          textShadow: `0 0 ${20 + glow * 30}px ${theme.red}88`,
+          whiteSpace: "pre",
         }}
       >
-        30 tool calls. one answer.
+        {renderedText}
+        <span
+          style={{
+            display: "inline-block",
+            width: 28,
+            height: 56,
+            verticalAlign: "-8px",
+            marginLeft: 4,
+            background: caretOn ? theme.text : "transparent",
+          }}
+        />
       </div>
-
-      <Caption
-        text={
-          showSecond
-            ? "We built an environment that turns this into a benchmark — and a reward signal that captures what senior SREs actually do."
-            : "It's 2 a.m. Your cloud platform just paged you. One region throws 8.7% errors. You have 30 tool calls and a single answer."
-        }
-      />
     </AbsoluteFill>
   );
 };

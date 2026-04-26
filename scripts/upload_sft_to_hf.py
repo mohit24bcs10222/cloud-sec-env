@@ -66,10 +66,10 @@ def main() -> int:
     print(f"Uploaded {src} -> {args.repo_id}/train.jsonl")
 
     # Also upload a small README.
-    readme = f"""# Cloud Sec Env -- SFT training data
+    readme = f"""# PagerBench -- SFT training data
 
 Opus-generated trajectories for fine-tuning a small LLM (Qwen2.5-7B) to investigate
-cloud-security incidents in our [Cloud Sec Env](https://github.com/<TODO>).
+cloud-security incidents in our [PagerBench](https://github.com/<TODO>).
 
 Each row is one full trajectory (system prompt + alert + alternating tool calls and
 results, ending with a `submit_answer` action). Assistant turns are pre-formatted as
