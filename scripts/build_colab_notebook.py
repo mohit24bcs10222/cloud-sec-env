@@ -137,13 +137,13 @@ Conservative defaults for ~30 trajectories. Tune `max_steps` based on dataset si
         "code",
         """from trl import SFTTrainer, SFTConfig
 
-# Compute a reasonable step count. Each example is one full trajectory; we
-# do ~3 epochs over the dataset.
-NUM_EPOCHS = 3
+# Train for ~200 steps -- enough for the model to lock in the JSON output
+# format. Earlier we tried ~41 steps and it produced JSON only some of the
+# time; 200 reliably lands the format as the dominant mode.
 BATCH_SIZE = 1                  # trajectories are long; batch=1 is safe on T4
 GRAD_ACCUM_STEPS = 4            # effective batch = 4
 TOTAL_EXAMPLES = len(dataset)
-MAX_STEPS = max(20, (NUM_EPOCHS * TOTAL_EXAMPLES) // (BATCH_SIZE * GRAD_ACCUM_STEPS))
+MAX_STEPS = 200
 print(f"Total examples: {TOTAL_EXAMPLES}; max_steps: {MAX_STEPS}")
 
 trainer = SFTTrainer(
