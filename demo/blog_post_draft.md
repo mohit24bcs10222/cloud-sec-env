@@ -4,7 +4,8 @@
 >
 > Live env: https://huggingface.co/spaces/Krishna3451112/cloud-sec-env-space
 > SFT data: https://huggingface.co/datasets/Krishna3451112/cloud-sec-env-sft
-> Code: <github URL>
+> Trained adapter: https://huggingface.co/Krishna3451112/cloud-sec-clean
+> Code: https://github.com/mohit24bcs10222/cloud-sec-env
 
 ---
 
@@ -81,14 +82,17 @@ Each trajectory got rendered as a chat-template-compatible message list — syst
 
 We fine-tuned Qwen2.5-7B-Instruct via Unsloth + TRL's `SFTTrainer` on a free Colab T4. LoRA adapter, 4-bit base model. The full notebook (`cloud_sec_env_sft.ipynb`) trains, plots loss, and evaluates against the live HF Space env in a single run-all.
 
-[loss curve image]
-
-[before/after rollout violin plot]
+![Terminal reward by model](before_after_chart.png)
 
 **Baseline → fine-tuned:**
-- Qwen baseline (n=5): submission rate 20-40%, mean reward ~0.05. Failed JSON parsing dominates failures. When it does submit, mentions things like "state lock contention" but vaguely.
-- Qwen + SFT (n=5): [TO-FILL — measured by final Colab run]
-- Opus 4.5 ceiling (n=30): mean ~0.96.
+- **Qwen baseline (n=5):** submit rate ~30%, mean terminal across all rollouts ~0.03. Failed JSON parsing dominates the failures. When it does submit, it mentions things like "state lock contention" but vaguely.
+- **Qwen + SFT, greedy (n=5):** submit rate 100%, mean terminal **0.900**. All 5 deterministic rollouts converged on the same 18-step trajectory and produced the correct CHG-1891 + cloud-2 + state-lock + targeted-reapply diagnosis. Closes ~95% of the gap to Opus.
+- **Qwen + SFT, sampled at T=0.7 (n=5):** submit rate 40%, mean terminal of submitted episodes **0.625**, mean across all rollouts 0.250. Two rollouts produced strong submits (0.450, 0.800); three wandered and ran out of the 30-step budget without submitting.
+- **Opus 4.5 ceiling (n=9, calibration round 4):** mean 0.96.
+
+The honest reading: the SFT'd model has clearly learned the task — it earns substantial step-level rewards even on its non-submitting rollouts (mean total reward ~1.55, close to greedy's 1.80) and emits semantically reasonable tool calls throughout. But it's also somewhat overfit to the modal trajectory: greedy decoding always converges on the high-frequency path (hence the perfect determinism), while sampling reveals that the 7B model hasn't fully learned to commit to `submit_answer` when the path forward is ambiguous.
+
+This is exactly the kind of brittleness GRPO is well-suited to fix — replacing the implicit "imitate the teacher's path" objective with explicit "maximize the env's reward signal across diverse rollouts." We ship the full GRPO recipe (see *Things we explicitly chose not to do*); we did not run it during the hackathon for compute reasons.
 
 **What the model learned:**
 - The output format (JSON tool-calls vs. broken prose)
@@ -107,7 +111,7 @@ We fine-tuned Qwen2.5-7B-Instruct via Unsloth + TRL's `SFTTrainer` on a free Col
 - **Live env**: open the [HF Space](https://huggingface.co/spaces/Krishna3451112/cloud-sec-env-space). The web interface lets you click through actions manually.
 - **Reproduce baseline**: `pip install openenv-core` then point an `EnvClient` at the Space URL.
 - **Fine-tune**: open `cloud_sec_env_sft.ipynb` in Colab, set runtime to T4, hit Run All. Self-contained.
-- **Code**: <github repo URL>
+- **Code**: https://github.com/mohit24bcs10222/cloud-sec-env
 
 ## What's next
 

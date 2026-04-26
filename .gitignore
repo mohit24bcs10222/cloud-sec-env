@@ -39,3 +39,12 @@ data/**/*.parquet
 colab/cloud_sec_sft_adapter/
 *.safetensors
 *.zip
+
+# Working dir for adapter-cleaning script (downloaded adapters, large blobs)
+build/
+
+# Remotion / Node.js artifacts (the demo video tool)
+node_modules/
+demo/video/node_modules/
+demo/video/out/
+*.tsbuildinfo
