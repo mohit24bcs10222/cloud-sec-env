@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PagerBench Incident Workbench</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">PB</span>
+          <div>
+            <p class="eyebrow">Live cloud-security incident console</p>
+            <h1>PagerBench On-Call Console</h1>
+          </div>
+        </div>
+        <div class="top-actions">
+          <a href="/health">Health</a>
+          <a href="/docs">API</a>
+          <a href="https://huggingface.co/datasets/Krishna3451112/cloud-sec-env-sft" target="_blank" rel="noreferrer">Dataset</a>
+          <a href="https://huggingface.co/Krishna3451112/cloud-sec-clean" target="_blank" rel="noreferrer">Adapter</a>
+        </div>
+      </header>
+
+      <main class="workbench">
+        <section class="panel task-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Task selection</p>
+              <h2>Start Incident</h2>
+            </div>
+            <span id="connStatus" class="status-pill">offline</span>
+          </div>
+
+          <label class="field">
+            <span>Scenario</span>
+            <select id="taskSelect"></select>
+          </label>
+
+          <div class="seed-row">
+            <button id="startButton" class="primary-button" type="button">Reset Episode</button>
+          </div>
+
+          <div class="score-strip">
+            <div>
+              <span>Step</span>
+              <strong id="stepCount">0 / 30</strong>
+            </div>
+            <div>
+              <span>Reward</span>
+              <strong id="rewardValue">none</strong>
+            </div>
+            <div>
+              <span>Done</span>
+              <strong id="doneValue">false</strong>
+            </div>
+          </div>
+
+          <div class="operator-note">
+            <p class="eyebrow">Investigation playbook</p>
+            <ol>
+              <li>Scope to the alerting cloud first.</li>
+              <li>Pivot from logs to traces to tickets.</li>
+              <li>Read Slack for human signal.</li>
+              <li>Submit with <code>submit_answer</code> when you have root cause + fix.</li>
+            </ol>
+          </div>
+        </section>
+
+        <section class="panel incident-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Incident brief</p>
+              <h2 id="incidentTitle">Select a scenario</h2>
+            </div>
+            <span class="status-pill violet">operator mode</span>
+          </div>
+          <pre id="incidentPrompt" class="incident-prompt">Click "Reset Episode" to fetch the alert from the live env.</pre>
+        </section>
+
+        <section class="panel tool-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Investigation action</p>
+              <h2>Run One Tool</h2>
+            </div>
+            <button id="resetUiButton" class="ghost-button" type="button">Clear Transcript</button>
+          </div>
+
+          <label class="field">
+            <span>Tool</span>
+            <select id="toolSelect"></select>
+          </label>
+
+          <p id="toolDescription" class="tool-description"></p>
+          <div id="toolFields" class="tool-fields"></div>
+
+          <details class="arg-preview">
+            <summary>Payload JSON</summary>
+            <pre id="argumentsPreview">{}</pre>
+          </details>
+
+          <div class="button-row">
+            <button id="callButton" class="primary-button" type="button">Run Tool</button>
+            <button id="copyButton" class="ghost-button" type="button">Copy Transcript</button>
+          </div>
+        </section>
+
+        <section class="panel state-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Episode state</p>
+              <h2>Episode Ledger</h2>
+            </div>
+            <span id="episodeStatus" class="status-pill">idle</span>
+          </div>
+          <div class="state-grid">
+            <div><span>Task</span><strong id="stateTask">none</strong></div>
+            <div><span>Step</span><strong id="stateStep">0</strong></div>
+            <div><span>Tools called</span><strong id="stateTools">0</strong></div>
+          </div>
+          <pre id="stateJson" class="state-json">{}</pre>
+        </section>
+
+        <section class="panel transcript-panel">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Tool transcript</p>
+              <h2>Live Tool Transcript</h2>
+            </div>
+            <span class="status-pill strict">trajectory-aware reward</span>
+          </div>
+          <div id="transcript" class="transcript-empty">
+            No tool calls yet. Click <strong style="color:var(--green)">Reset Episode</strong>, then call tools to investigate. End with <code>submit_answer</code> for the terminal reward.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
